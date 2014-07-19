@@ -1,10 +1,10 @@
-VideoProcServer
+Indis
 ===========
 
 Description
 -----------
 
-Nodejs video procssing server, using c++ addons for algorithm and html5 for rendering
+Interactive display using nodejs + html5
 
 Install
 -----------

@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+	<style>
+		video
+		{
+			position:absolute;
+			left: 0px;
+			top; 0px;
+			z-index: 1;
+		}
+		#canvas_time
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 2;
+			alpha: 0;
+			opacity: 0.3;
+		}
+		#canvas_block
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 3;
+			alpha: 0;
+			opacity: 0.3;
+		}
+		#toggle
+		{
+			position:absolute;
+			left: 1223px;
+			top: 680px;
+			z-index: 4;
+		}
+	</style>
+	<head>
+		<title>AVGdemo</title>
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<script src="/bootstrap/js/bootstrap.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<ul id="messages"></ul>
+		<video id="video" src="/video/youfromstar1.mp4" controls></video>
+		<canvas id="canvas_time" width="800px" height="600px"></canvas>
+		<canvas id="canvas_block" onclick="onCanvasClick(event)" width="1280px" height="680px"></canvas>
+		<button id="toggle" type="button" class="btn btn-default btn-lg">
+			<span class="glyphicon glyphicon-hand-up"></span>
+		</button>
+		<script>
+			var video=document.getElementById('video');
+			var canvas_time=document.getElementById('canvas_time');
+			var ctx_time=canvas_time.getContext('2d');
+			var canvas_block=document.getElementById('canvas_block');
+			var ctx_block=canvas_block.getContext('2d');
+			
+			var socket = io();			
+			
+			var sectionObj = new Object();
+			
+			function getLocation()
+			{
+				socket.emit('get location');
+			}
+			function judgeTime(t)
+			{
+				for(var i = 0; i < sectionObj.sectionNumber*2; i = i + 2)
+				{
+					if (t >= sectionObj.timeArray[i] && t <= sectionObj.timeArray[i+1])
+					{
+						return  -1 * (i / 2 + 1);
+					}
+				}
+				return 0;
+			}
+			function onCanvasClick(event) 
+			{
+				var blockData = ctx_block.getImageData(0, 0, canvas_block.width, canvas_block.height);
+				var x = event.clientX;
+				var y = event.clientY;
+				if(blockData.data[(y * canvas_block.width + x) * 4] == 255 && blockData.data[(y * canvas_block.width + x) * 4 + 1] == 255 && blockData.data[(y * canvas_block.width + x) * 4 + 2] == 255)
+				{
+					video.pause();
+					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.18.W7hLca&id=36806788882&ns=1#detail");
+					//window.open("detail");
+				}
+			}
+			
+			$(document).ready(function()
+				{
+					getLocation();
+					$("#toggle").click(function(){
+						$("#canvas_block").toggle();
+					});
+					socket.on('send location', function(msg)
+					{
+						sectionObj = msg;
+					});
+					$("#canvas_block").toggle();
+				});
+			
+			var time = video.currentTime;
+			var clearFlag = 0;
+			video.ontimeupdate = function()
+			{
+				time = video.currentTime;
+				ctx_time.fillStyle = "blue";
+				ctx_time.font = '80pt Calibri';
+				ctx_time.clearRect(0, 500, 800, 300);
+				ctx_time.fillText(time, 100, 600);
+				
+				var currentSection = judgeTime(time);
+				if(currentSection != 0)
+				{
+					$('#toggle').attr('disabled', false);
+					var startIndex = sectionObj.indexArray.indexOf(currentSection) + 1;
+					var endIndex = sectionObj.indexArray.indexOf(currentSection - 1);
+					var cIndex = startIndex;
+					for(cIndex = startIndex; cIndex < endIndex - 1; cIndex++)
+					{
+						var contourPointNumber = sectionObj.indexArray[cIndex + 1] - sectionObj.indexArray[cIndex];
+						ctx_block.fillStyle="#FFFFFF";
+						ctx_block.beginPath();
+						ctx_block.moveTo(sectionObj.sectionArray[sectionObj.indexArray[cIndex]], sectionObj.sectionArray[sectionObj.indexArray[cIndex] + 1]);
+						var i = 0;
+						var tempX = 0;
+						var tempY = 0;
+						for(i = sectionObj.indexArray[cIndex] + 2; i < contourPointNumber + sectionObj.indexArray[cIndex]; i = i + 2)
+						{
+							ctx_block.lineTo(sectionObj.sectionArray[i], sectionObj.sectionArray[i+1]);
+							tempX += sectionObj.sectionArray[i];
+							tempY += sectionObj.sectionArray[i+1];
+						}
+						tempX = tempX / contourPointNumber * 2;
+						tempY = tempY / contourPointNumber * 2;
+						var grd = ctx_block.createRadialGradient(tempX,tempY,5,tempX,tempY,100);
+						grd.addColorStop(0,"red");
+						grd.addColorStop(1,"white");
+
+						ctx_block.fillStyle=grd;
+						ctx_block.fill();
+					}
+					clearFlag = 0;
+				}
+				else
+				{
+					if(clearFlag == 0)
+					{
+						$('#toggle').attr('disabled', true);
+						ctx_block.clearRect(0, 0, canvas_block.width, canvas_block.height);
+						$("#canvas_block").hide();
+						clearFlag = 1;
+					}
+				}
+			}	
+		</script>
+	</body>
+</html>

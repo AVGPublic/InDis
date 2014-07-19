@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - lines - splines</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			a {
+				color:#0078ff;
+			}
+
+			#info {
+				position: absolute;
+				top: 20px; width: 100%;
+				color: #000000;
+				padding: 5px;
+				font-family: Monospace;
+				font-size: 13px;
+				text-align: center;
+				z-index:100;		
+			}
+
+			a {
+				color: orange;
+				text-decoration: none;
+			}
+
+			a:hover {
+				color: #0080ff;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="info">
+	            Hawk Eye Demo
+               <input type="button" onclick="CameraTop()" value="Camera Top" />
+               <input type="button" onclick="CameraFront()" value="Camera Front" />
+               <input type="button" onclick="CameraSide()" value="Camera Side" />
+               <input type="button" onclick="StartRecord()" value="Start Record" />
+		</div>
+                
+
+
+		<script src="threejs/three.min.r53.js"></script>
+		<script src="js/Detector.js"></script>
+		<script>
+
+			//if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var mouseX = 0, mouseY = 0,
+
+			windowHalfX = window.innerWidth / 2,
+			windowHalfY = window.innerHeight / 2,
+
+			camera, scene, renderer, material;
+
+			var mouseStart;
+			var mouseMoved;
+			var camLookAt;
+			var currFrame;
+
+			var aniStartPos, aniStartLookAt, aniStartUp, aniTargetPos, aniTargetLootAt, aniTargetUp, startFrame, aniTimeWillLast;
+			var bStartAnimation, bStartRecord;
+			var aniStartFOV, aniTargetFOV;
+            var currFOV;
+
+			init();
+			animate();
+
+			function init() {
+
+			    currFrame = 0;
+			    bStartAnimation = false;
+			    bStartRecord = false;
+			    aniTargetPos = new THREE.Vector3;
+			    aniTargetLookAt = new THREE.Vector3;
+			    aniTargetUp = new THREE.Vector3;
+			    aniStartPos = new THREE.Vector3;
+			    aniStartLookAt = new THREE.Vector3;
+			    aniStartUp = new THREE.Vector3;
+
+			    var i, n_sub, container;
+			    var scenescale = 1.0;
+
+				container = document.createElement( "div" );
+				document.body.appendChild( container );
+
+				mouseStart = new THREE.Vector2(0, 0);
+				mouseMoved = new THREE.Vector2(0, 0);
+				camLookAt = new THREE.Vector3(0, 0, 0);
+
+				//camera = new THREE.PerspectiveCamera(48.109865, window.innerWidth / window.innerHeight, 1, 5000);
+                currFOV = 12.854889;
+				camera = new THREE.PerspectiveCamera(currFOV, window.innerWidth / window.innerHeight, 1, 5000);
+				camera.position.z = 800;
+				camera.lookAt(camLookAt);
+			
+				scene = new THREE.Scene();
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.setClearColorHex(0xaaaaaa, 1);
+
+				container.appendChild( renderer.domElement );
+
+                //
+				var geometry = new THREE.Geometry(),
+					points1 = trajectory3D(1),
+                    points2 = trajectory3D(2),
+
+				n_sub = 5;
+
+				var position, index;
+
+				var spline = new THREE.Spline( points1 );
+
+	            for (i = 0; i < points1.length * n_sub; i++) {
+
+	                index = i / (points1.length * n_sub);
+	                position = spline.getPoint(index);
+
+	                spheregeometry = new THREE.SphereGeometry(2, 20, 20, 20);
+	                mesh = new THREE.Mesh(spheregeometry, new THREE.MeshBasicMaterial({ color: 0xe7a955 }));
+	                mesh.position.copy(position);
+	                mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+	                scene.add(mesh);
+	             }
+
+	            var spline = new THREE.Spline(points2);
+
+	            for (i = 0; i < points2.length * n_sub; i++) {
+
+	                index = i / (points2.length * n_sub);
+	                position = spline.getPoint(index);
+	                spheregeometry = new THREE.SphereGeometry(2, 20, 20, 20);
+	                mesh = new THREE.Mesh(spheregeometry, new THREE.MeshBasicMaterial({ color: 0xe7a955 }));
+	                mesh.position.copy(position);
+	                mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+	                scene.add(mesh);
+	            }
+
+				//table
+				generateTable(scene, scenescale);
+
+				// Lights
+
+				scene.add(new THREE.AmbientLight(0x111111));
+
+				var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.125);
+
+				directionalLight.position.x = 0;
+				directionalLight.position.y = 200;
+				directionalLight.position.z = 0;
+
+				directionalLight.position.normalize();
+
+				scene.add(directionalLight);
+
+				pointLight = new THREE.PointLight(0xffffff, 1);
+				pointLight.position.x = 0;
+				pointLight.position.y = 200
+				pointLight.position.z = 0; ;
+				scene.add(pointLight);
+
+				document.addEventListener('mousedown', onDocumentMouseDown, false);
+				document.addEventListener('mousewheel', onDocumentMouseWheel, false);	
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function trajectory3D(part) {
+
+			    //velocity = [6.1422,  5.9249, 4.4276, 4.6950]; m/s
+
+			    vec_s = [
+
+					new THREE.Vector3(35.974133, 32.243354, -26.586037),
+					new THREE.Vector3(21.788954, 16.897562, -13.666881),
+					new THREE.Vector3(8.576773, 1.520280, -1.393094),
+					new THREE.Vector3(-1.668482, 7.499756, 11.757771),
+					new THREE.Vector3(-11.581422, 11.901773, 27.088723),
+
+					];
+
+                    if (part == 1){
+					    vec = [vec_s[0], vec_s[1], vec_s[2]];
+                    }
+                    else if (part == 2){
+                    	vec = [vec_s[2], vec_s[3], vec_s[4]];
+                    }
+				return vec;
+
+			}
+
+
+			function generateTable(scene, scenescale) {
+
+			    //
+			    cubegeometry = new THREE.CubeGeometry(1000, 0.1, 700);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshLambertMaterial({ color: 0x666666, emissive: 0x111111, ambient: 0x000000, shading: THREE.SmoothShading }));
+			    mesh.position.x = 0;
+			    mesh.position.y = -72.9 - 4.4;
+			    mesh.position.z = -100;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    cubegeometry = new THREE.CubeGeometry(1000, 500, 0.1);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x444444, ambient: 0xffffff, shading: THREE.SmoothShading }));
+			    mesh.position.x = 0;
+			    mesh.position.y = 173;
+			    mesh.position.z = -450;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    cubegeometry = new THREE.CubeGeometry(0.1, 500, 700);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x333333, opacity: 0.3, transparent: true }));
+			    mesh.position.x = 500;
+			    mesh.position.y = 173;
+			    mesh.position.z = -100;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    //
+			    cubegeometry = new THREE.CubeGeometry(273.9, 4.4, 152.3);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x5c767e }));
+			    mesh.position.x = 136.95;
+			    mesh.position.y = -2.2;
+			    mesh.position.z = -76.15;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    //
+			    cubegeometry = new THREE.CubeGeometry(132.8, 0.01, 1);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true}));
+			    mesh.position.x = -132.8 / 2 + 273.9;
+			    mesh.position.y = 0.05;
+			    mesh.position.z = -76.15;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(273.9, 0.01, 2);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+			    mesh.position.x = -136.95  + 273.9;
+			    mesh.position.y = 0.05;
+			    mesh.position.z = 0 - 1;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(273.9, 0.01, 2);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+			    mesh.position.x = -136.95 + 273.9;
+			    mesh.position.y = 0.05;
+			    mesh.position.z = -152.3 + 1;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(2, 0.01, 152.3);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+			    mesh.position.x = 1;
+			    mesh.position.y = 0.05;
+			    mesh.position.z = -152.3/2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(2, 0.01, 152.3);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+			    mesh.position.x = 273.9 - 1;
+			    mesh.position.y = 0.05;
+			    mesh.position.z = -152.3/2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(132.8, 0.01, 1);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }));
+			    mesh.position.x = 132.8 / 2;
+			    mesh.position.y = 0.01;
+			    mesh.position.z = -76.15;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(1, 4.4, 152.3);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x000000 }));
+			    mesh.position.x = 136.95;
+			    mesh.position.y = -2.2;
+			    mesh.position.z = -76.15;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    //
+			    netTexture = THREE.ImageUtils.loadTexture("160.jpg");
+			    cubegeometry = new THREE.CubeGeometry(0.2, 15.2, 170);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, map: netTexture, opacity: 0.5, transparent: true }));
+			    mesh.position.x = 136.95;
+			    mesh.position.y = 7.6;
+			    mesh.position.z = -76.15;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(3.15, 72.9, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 27.85 + 3.15 / 2;
+			    mesh.position.y = -72.9 / 2 - 4.4;
+			    mesh.position.z = -21.2 - 3.15 / 2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(85.6 - 3.15 * 2, 3.15, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 27.85 + (85.6 - 3.12 * 2) / 2;
+			    mesh.position.y = -26.9 - 3.15 / 2 - 4.4;
+			    mesh.position.z = -21.2 - 3.15 / 2 - 0.1;
+			    mesh.rotation.x = 0;
+			    mesh.rotation.y = 0.005;
+			    mesh.rotation.z = 0;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(3.15, 72.9, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 27.85 + 3.15 / 2 + 85.6 - 3.15 * 2;
+			    mesh.position.y = -72.9 / 2 - 4.4;
+			    mesh.position.z = -21.6 - 3.15 / 2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+			    //
+			    cubegeometry = new THREE.CubeGeometry(3.15, 72.9, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 23.3 + 3.15 / 2;
+			    mesh.position.y = -72.9 / 2 - 4.4;
+			    mesh.position.z = -152.3 + 24.7 + 3.15 / 2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    //
+			    cubegeometry = new THREE.CubeGeometry(85.6 - 3.15 * 2, 3.15, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 23.3 + (85.6 - 3.12 * 2) / 2;
+			    mesh.position.y = -26.9 - 3.15 / 2 - 4.4;
+			    mesh.position.z = -152.3 + 24.7 + 3.15 / 2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+
+			    //
+			    cubegeometry = new THREE.CubeGeometry(3.15, 72.9, 3.15);
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0x111317 }));
+			    mesh.position.x = 23.3 + 3.15 / 2 + 85.6 - 3.15 * 2;
+			    mesh.position.y = -72.9 / 2 - 4.4;
+			    mesh.position.z = -152.3 + 24.7 + 3.15 / 2;
+			    mesh.scale.x = mesh.scale.y = mesh.scale.z = scenescale;
+
+			    scene.add(mesh);
+            }
+			//
+
+			function animate() {
+
+			    if (bStartAnimation) {
+			        dTime = (currFrame - aniStartFrame)/aniTimeWillLast;
+                    currFOV = aniStartFOV*(1-dTime) + aniTargetFOV*dTime;
+			        camera = new THREE.PerspectiveCamera(currFOV, window.innerWidth / window.innerHeight, 1, 5000);
+
+			        a = new THREE.Vector3;
+			        b = new THREE.Vector3;
+
+			        a.copy(aniStartPos);
+			        a.multiplyScalar(1 - dTime);
+			        b.copy(aniTargetPos);
+			        b.multiplyScalar(dTime);
+			        camera.position.add(a, b);
+
+			        a.copy(aniStartUp);
+			        a.multiplyScalar(1 - dTime);
+			        b.copy(aniTargetUp);
+			        b.multiplyScalar(dTime);
+			        camera.up.add(a, b);
+
+			        a.copy(aniStartLookAt);
+			        a.multiplyScalar(1 - dTime);
+			        b.copy(aniTargetLookAt);
+			        b.multiplyScalar(dTime);
+			        camLookAt.add(a, b);
+			        camera.lookAt(camLookAt);
+
+			        if (currFrame - aniStartFrame >= aniTimeWillLast) {
+			            bStartAnimation = false;
+			            bStartRecord = false;
+                    }
+                }
+			    requestAnimationFrame(animate);
+				render();
+				currFrame += 1;
+			}
+
+			function render() {
+
+			    renderer.render(scene, camera);
+			    if (bStartRecord) {
+
+			    }
+
+			}
+
+			function onDocumentMouseDown(event) {
+
+			    event.preventDefault();
+
+			    document.addEventListener('mousemove', onDocumentMouseMove, false);
+			    document.addEventListener('mouseup', onDocumentMouseUp, false);
+			    document.addEventListener('mouseout', onDocumentMouseOut, false);
+
+			    mouseStart.x = event.clientX;
+			    mouseStart.y = event.clientY;
+
+			}
+			function onDocumentMouseMove(event) {
+
+			    mouseMoved = new THREE.Vector2(0, 0);
+			    mouseMoved.x = event.clientX - mouseStart.x;
+			    mouseMoved.y = event.clientY - mouseStart.y;
+			    mouseStart.x = event.clientX;
+			    mouseStart.y = event.clientY;
+
+			    axisx = new THREE.Vector3(camera.matrixWorld.elements[0], camera.matrixWorld.elements[1], camera.matrixWorld.elements[2]);
+			    axisy = new THREE.Vector3(0, camera.up.y, 0);
+
+			    RotateMat = new THREE.Matrix4;
+			    RotateMat.identity();
+			    RotateMat.rotateByAxis(axisy, -0.003 * (mouseMoved.x));
+			    RotateMat.rotateByAxis(axisx, -0.002 * (mouseMoved.y));
+
+			    camPos2LookAt = new THREE.Vector3;
+			    camPos2LookAt.sub(camera.position, camLookAt);
+			    camPos2LookAt4 = new THREE.Vector4(camPos2LookAt.x, camPos2LookAt.y, camPos2LookAt.z, 1);
+			    camPos2LookAt4 = RotateMat.multiplyVector4(camPos2LookAt4);
+			    camPos2LookAt.set(camPos2LookAt4.x, camPos2LookAt4.y, camPos2LookAt4.z);
+			    camera.position.add(camPos2LookAt, camLookAt);
+
+			    up = new THREE.Vector3;
+			    up = camPos2LookAt.crossSelf(axisx);
+			    if (up.y < 0) {
+			        camera.up.y = -1;
+			    }
+			    else {
+			        camera.up.y = 1;
+			    }
+
+			    camera.lookAt(camLookAt);
+			}
+
+			function onDocumentMouseUp(event) {
+
+			    document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			    document.removeEventListener('mouseup', onDocumentMouseUp, false);
+			    document.removeEventListener('mouseout', onDocumentMouseOut, false);
+
+			}
+
+			function onDocumentMouseOut(event) {
+
+			    document.removeEventListener('mousemove', onDocumentMouseMove, false);
+			    document.removeEventListener('mouseup', onDocumentMouseUp, false);
+			    document.removeEventListener('mouseout', onDocumentMouseOut, false);
+
+			}
+
+			function onDocumentMouseWheel(event) {
+			    zoom = 0.1 * event.wheelDelta/100;
+			    cam2LookAt = new THREE.Vector3;
+			    cam2LookAt.sub(camera.position, camLookAt);
+			    Length = cam2LookAt.length();
+			    cam2LookAt.setLength(Length*(1 + zoom));
+			    camera.position.add(cam2LookAt, camLookAt);
+			    camera.lookAt(camLookAt);
+			}
+
+
+			function CameraTop() {
+			    //TopMat = [0.170343, 0.155427, -0.973050, -72.221855, 0.868561, -0.490061, 0.073773, -61.548553, -0.465387, -0.857720, -0.218476, 204.113907, 0, 0, 0, 1];
+
+			    aniStartPos.copy(camera.position);
+			    aniTargetPos.set(160.753164, 156.135172, -21.140886);
+
+			    aniStartUp.copy(camera.up);
+			    aniTargetUp.set(-0.868561, 0.490061, -0.073773);
+
+			    aniStartLookAt.copy(camLookAt);
+			    cam2LookAt = new THREE.Vector3(-0.465387, -0.857720, -0.218476);
+			    cam2LookAt.multiplyScalar(200);
+			    aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+
+			    aniStartFrame = currFrame;
+			    aniTimeWillLast = 100;
+
+			    aniStartFOV = currFOV;
+			    aniTargetFOV = 48.109865;
+			    bStartAnimation = true;
+			    //bStartRecord = true;
+			}
+			function CameraSide() {
+			    aniStartPos.copy(camera.position);
+			    aniTargetPos.set( -86.208061, 70.503530, 338.634231);
+
+			    aniStartUp.copy(camera.up);
+			    aniTargetUp.set(0.048368, 0.983418, -0.174787);
+
+			    aniStartLookAt.copy(camLookAt);
+			    cam2LookAt = new THREE.Vector3(0.339261, - 0.180763, - 0.923161);
+			    cam2LookAt.multiplyScalar(200);
+			    aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+
+			    aniStartFrame = currFrame;
+			    aniTimeWillLast = 100;
+
+			    aniStartFOV = currFOV;
+			    aniTargetFOV = 12.854889;
+			    bStartAnimation = true;
+			    //bStartRecord = true;
+            }
+
+            function CameraFront() {
+
+                aniStartPos.copy(camera.position);
+                aniTargetPos.set(-278.016487, 126.746712, -81.524969);
+
+                aniStartUp.copy(camera.up);
+                aniTargetUp.set(0.409040,	0.912210,	0.023663);
+
+                aniStartLookAt.copy(camLookAt);
+                cam2LookAt = new THREE.Vector3(0.912511, -0.408986, -0.007292);
+                cam2LookAt.multiplyScalar(200);
+                aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+
+                aniStartFrame = currFrame;
+                aniTimeWillLast = 100;
+
+                aniStartFOV = currFOV;
+                aniTargetFOV = 19.995890;
+                bStartAnimation = true;
+                //bStartRecord = true;
+            }
+
+		</script>
+	</body>
+</html>

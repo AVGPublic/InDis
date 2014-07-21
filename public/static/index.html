@@ -71,12 +71,8 @@
     font-size: 14px;
   }
 }
-#poster_bg
-{
 
-}
-
-#play_box
+#logo_
 {
 	width: 60%;
 	height: 60%;
@@ -85,6 +81,12 @@
 	left: 20%;
 	z-index: 10;
 	opacity: 0.0;
+}
+
+#interactive_video
+{
+	width: 100%;
+	height: 20;
 }
   </style>
     
@@ -96,7 +98,7 @@
                   <div id="video-gallery" class="royalSlider videoGallery rsDefault">
 					  <a>
                       <div class="rsContent">
-								<iframe id = "play_box" src="logo" width = "850" height = "300", position = "absolute"></iframe>
+								<iframe id = "logo_" src="logo" width = "850" height = "300", position = "absolute"></iframe>
 								<img class = "rsImg" id = "poster_bg" src="image/logo-BG.jpg"/>
                       </div>
 					  <div class="rsTmb">
@@ -114,7 +116,7 @@
 					  
 					  <a>
                       <div class="rsContent">
-							<iframe src="interactive_video" width = "850" height = "520"></iframe>
+							<iframe id = "interactive_video" src="interactive_video" width = "850" height = "520"></iframe>
                       </div>
 					  <div class="rsTmb">
                           <h5>Interactive Video</h5>
@@ -124,11 +126,7 @@
 
 					  <a>
                       <div class="rsContent">
-                          <!--<a class="rsImg" data-rsVideo="https://vimeo.com/31240369" href="image/210393954_640.jpg">-->
-                          <div class="rsABlock">
-								<iframe src="demo_hawkeye" width = "800" height = "600"></iframe>
-                          </div>
-                          <!--<h3 class="rsABlock sampleBlock">Animated block, to show you that you can put anything you want inside each slide.</h3>-->
+								<iframe src="demo_hawkeye" width = "100%" height = "100%"></iframe>
                       </div>
 					  <div class="rsTmb">
                           <h5>3-D Display</h5>
@@ -143,8 +141,8 @@
   </div>
   <script>
         jQuery(document).ready(function ($) {
-			$('#play_box').load(function(){
-				$(this).fadeTo(100, 1.0);
+			$('#logo_').load(function(){
+				$(this).fadeTo(10, 1.0);
 			});
             $('#video-gallery').royalSlider({
                 arrowsNav: false,

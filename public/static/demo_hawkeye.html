@@ -48,11 +48,15 @@
                 
 
 
-		<script src="threejs/three.min.r53.js"></script>
+		<script src="threejs/three.min.js"></script>
 		<script src="js/Detector.js"></script>
 		<script>
 
-			//if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+			if ( ! Detector.webgl ) 
+			{
+				alert("No WebGL");
+				Detector.addGetWebGLMessage();
+			}
 
 			var mouseX = 0, mouseY = 0,
 
@@ -60,7 +64,7 @@
 			windowHalfY = window.innerHeight / 2,
 
 			camera, scene, renderer, material;
-
+	
 			var mouseStart;
 			var mouseMoved;
 			var camLookAt;
@@ -106,7 +110,7 @@
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setSize(window.innerWidth, window.innerHeight);
-				renderer.setClearColorHex(0xaaaaaa, 1);
+				renderer.setClearColor(0xaaaaaa);
 
 				container.appendChild( renderer.domElement );
 
@@ -171,6 +175,8 @@
 
 				document.addEventListener('mousedown', onDocumentMouseDown, false);
 				document.addEventListener('mousewheel', onDocumentMouseWheel, false);	
+				document.addEventListener ('touchstart', onDocumentTouchStart, false);
+				document.addEventListener ('touchmove', onDocumentTouchMove, false);
 				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
@@ -319,9 +325,9 @@
 			    scene.add(mesh);
 
 			    //
-			    netTexture = THREE.ImageUtils.loadTexture("160.jpg");
+			    //netTexture = THREE.ImageUtils.loadTexture("160.jpg");
 			    cubegeometry = new THREE.CubeGeometry(0.2, 15.2, 170);
-			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, map: netTexture, opacity: 0.5, transparent: true }));
+			    mesh = new THREE.Mesh(cubegeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true }));
 			    mesh.position.x = 136.95;
 			    mesh.position.y = 7.6;
 			    mesh.position.z = -76.15;
@@ -404,19 +410,19 @@
 			        a.multiplyScalar(1 - dTime);
 			        b.copy(aniTargetPos);
 			        b.multiplyScalar(dTime);
-			        camera.position.add(a, b);
+			        camera.position.addVectors(a, b);
 
 			        a.copy(aniStartUp);
 			        a.multiplyScalar(1 - dTime);
 			        b.copy(aniTargetUp);
 			        b.multiplyScalar(dTime);
-			        camera.up.add(a, b);
+			        camera.up.addVectors(a, b);
 
 			        a.copy(aniStartLookAt);
 			        a.multiplyScalar(1 - dTime);
 			        b.copy(aniTargetLookAt);
 			        b.multiplyScalar(dTime);
-			        camLookAt.add(a, b);
+			        camLookAt.addVectors(a, b);
 			        camera.lookAt(camLookAt);
 
 			        if (currFrame - aniStartFrame >= aniTimeWillLast) {
@@ -437,7 +443,26 @@
 			    }
 
 			}
+			
+			function onDocumentTouchStart (event) {
+				
+				if (event.touches.length == 1) {
+					event.preventDefault();
+					mouseStart.x = event.touch[0].pageX;
+					mouseStart.y = event.touch[0].pageY;
+				}
+			}
 
+			function onDocumentTouchMove (event) {	
+				
+				if (event.touches.length == 1) {
+					event.preventDefault();
+					mouseMoved.x = event.touch[0].pageX - mouseStart.x;
+					mouseMoved.y = event.touch[0].pageY - mouseStart.y;
+				}
+
+			}
+	
 			function onDocumentMouseDown(event) {
 
 			    event.preventDefault();
@@ -463,18 +488,21 @@
 
 			    RotateMat = new THREE.Matrix4;
 			    RotateMat.identity();
-			    RotateMat.rotateByAxis(axisy, -0.003 * (mouseMoved.x));
-			    RotateMat.rotateByAxis(axisx, -0.002 * (mouseMoved.y));
+				RotateMat1 = new THREE.Matrix4;
+			    RotateMat1.makeRotationAxis(axisy, -0.003 * (mouseMoved.x));
+				RotateMat2 = new THREE.Matrix4;
+			    RotateMat2.makeRotationAxis(axisx, -0.002 * (mouseMoved.y));
+				RotateMat.multiplyMatrices(RotateMat1, RotateMat2);
 
 			    camPos2LookAt = new THREE.Vector3;
-			    camPos2LookAt.sub(camera.position, camLookAt);
+			    camPos2LookAt.subVectors(camera.position, camLookAt);
 			    camPos2LookAt4 = new THREE.Vector4(camPos2LookAt.x, camPos2LookAt.y, camPos2LookAt.z, 1);
-			    camPos2LookAt4 = RotateMat.multiplyVector4(camPos2LookAt4);
+			    camPos2LookAt4.applyMatrix4(RotateMat);//multiplyVector4();
 			    camPos2LookAt.set(camPos2LookAt4.x, camPos2LookAt4.y, camPos2LookAt4.z);
-			    camera.position.add(camPos2LookAt, camLookAt);
+			    camera.position.addVectors(camPos2LookAt, camLookAt);
 
 			    up = new THREE.Vector3;
-			    up = camPos2LookAt.crossSelf(axisx);
+			    up.crossVectors(camPos2LookAt, axisx);
 			    if (up.y < 0) {
 			        camera.up.y = -1;
 			    }
@@ -504,10 +532,10 @@
 			function onDocumentMouseWheel(event) {
 			    zoom = 0.1 * event.wheelDelta/100;
 			    cam2LookAt = new THREE.Vector3;
-			    cam2LookAt.sub(camera.position, camLookAt);
+			    cam2LookAt.subVectors(camera.position, camLookAt);
 			    Length = cam2LookAt.length();
 			    cam2LookAt.setLength(Length*(1 + zoom));
-			    camera.position.add(cam2LookAt, camLookAt);
+			    camera.position.addVectors(cam2LookAt, camLookAt);
 			    camera.lookAt(camLookAt);
 			}
 
@@ -524,7 +552,7 @@
 			    aniStartLookAt.copy(camLookAt);
 			    cam2LookAt = new THREE.Vector3(-0.465387, -0.857720, -0.218476);
 			    cam2LookAt.multiplyScalar(200);
-			    aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+			    aniTargetLookAt.addVectors(aniTargetPos, cam2LookAt);
 
 			    aniStartFrame = currFrame;
 			    aniTimeWillLast = 100;
@@ -544,7 +572,7 @@
 			    aniStartLookAt.copy(camLookAt);
 			    cam2LookAt = new THREE.Vector3(0.339261, - 0.180763, - 0.923161);
 			    cam2LookAt.multiplyScalar(200);
-			    aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+			    aniTargetLookAt.addVectors(aniTargetPos, cam2LookAt);
 
 			    aniStartFrame = currFrame;
 			    aniTimeWillLast = 100;
@@ -566,7 +594,7 @@
                 aniStartLookAt.copy(camLookAt);
                 cam2LookAt = new THREE.Vector3(0.912511, -0.408986, -0.007292);
                 cam2LookAt.multiplyScalar(200);
-                aniTargetLookAt.add(aniTargetPos, cam2LookAt);
+                aniTargetLookAt.addVectors(aniTargetPos, cam2LookAt);
 
                 aniStartFrame = currFrame;
                 aniTimeWillLast = 100;

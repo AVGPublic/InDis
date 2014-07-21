@@ -84,6 +84,7 @@
 	top: 2%;
 	left: 20%;
 	z-index: 10;
+	opacity: 0.0;
 }
   </style>
     
@@ -96,11 +97,7 @@
 					  <a>
                       <div class="rsContent">
 								<iframe id = "play_box" src="logo" width = "850" height = "300", position = "absolute"></iframe>
-<<<<<<< Updated upstream
 								<img class = "rsImg" id = "poster_bg" src="image/logo-BG.jpg"/>
-=======
-								<img class = "rsImg" id = "poster_bg" src="image/hermit_poster.png"/>
->>>>>>> Stashed changes
                       </div>
 					  <div class="rsTmb">
                           <h5>Welcome to</h5>
@@ -146,6 +143,9 @@
   </div>
   <script>
         jQuery(document).ready(function ($) {
+			$('#play_box').load(function(){
+				$(this).fadeTo(100, 1.0);
+			});
             $('#video-gallery').royalSlider({
                 arrowsNav: false,
                 fadeinLoadedSlide: true,

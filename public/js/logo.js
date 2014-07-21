@@ -87,6 +87,7 @@ document.addEventListener ('DOMContentLoaded', function () {
     function init() {
         renderer = new THREE.CanvasRenderer( { antialias: true, devicePixelRatio: 1 } );
         renderer.setSize (window.innerWidth, window.innerHeight);
+		renderer.setClearColorHex(0x000000, 0.0);
         document.getElementById('canvasdiv').appendChild (renderer.domElement);
            
         camera = new THREE.PerspectiveCamera (
@@ -304,7 +305,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         if (velocity > 0.2)
         {
             for ( var i = 0; i < 100; i++ ) {
-                particles[i].material.opacity = 0.5;
+                particles[i].material.opacity = 1.0;
             }
             start_open = true;
         }

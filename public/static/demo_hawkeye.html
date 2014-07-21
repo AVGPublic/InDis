@@ -43,7 +43,6 @@
                <input type="button" onclick="CameraTop()" value="Camera Top" />
                <input type="button" onclick="CameraFront()" value="Camera Front" />
                <input type="button" onclick="CameraSide()" value="Camera Side" />
-               <input type="button" onclick="StartRecord()" value="Start Record" />
 		</div>
                 
 
@@ -447,20 +446,50 @@
 			function onDocumentTouchStart (event) {
 				
 				if (event.touches.length == 1) {
-					event.preventDefault();
-					mouseStart.x = event.touch[0].pageX;
-					mouseStart.y = event.touch[0].pageY;
+					mouseStart.x = event.touches[0].pageX - windowHalfX;
+					mouseStart.y = event.touches[0].pageY - windowHalfY;
 				}
 			}
 
 			function onDocumentTouchMove (event) {	
-				
-				if (event.touches.length == 1) {
-					event.preventDefault();
-					mouseMoved.x = event.touch[0].pageX - mouseStart.x;
-					mouseMoved.y = event.touch[0].pageY - mouseStart.y;
-				}
 
+				if (event.touches.length == 1) {
+
+					event.preventDefault();
+					mouseMoved.x = event.touches[0].pageX - windowHalfX - mouseStart.x;
+					mouseMoved.y = event.touches[0].pageY - windowHalfY - mouseStart.y;
+					mouseStart.x = event.touches[0].pageX - windowHalfX;
+					mouseStart.y = event.touches[0].pageY - windowHalfY;
+		
+					axisx = new THREE.Vector3(camera.matrixWorld.elements[0], camera.matrixWorld.elements[1], camera.matrixWorld.elements[2]);
+					axisy = new THREE.Vector3(0, camera.up.y, 0);
+
+					RotateMat = new THREE.Matrix4;
+					RotateMat.identity();
+					RotateMat1 = new THREE.Matrix4;
+					RotateMat1.makeRotationAxis(axisy, -0.003 * (mouseMoved.x));
+					RotateMat2 = new THREE.Matrix4;
+					RotateMat2.makeRotationAxis(axisx, -0.002 * (mouseMoved.y));
+					RotateMat.multiplyMatrices(RotateMat1, RotateMat2);
+
+					camPos2LookAt = new THREE.Vector3;
+					camPos2LookAt.subVectors(camera.position, camLookAt);
+					camPos2LookAt4 = new THREE.Vector4(camPos2LookAt.x, camPos2LookAt.y, camPos2LookAt.z, 1);
+					camPos2LookAt4.applyMatrix4(RotateMat);//multiplyVector4();
+					camPos2LookAt.set(camPos2LookAt4.x, camPos2LookAt4.y, camPos2LookAt4.z);
+					camera.position.addVectors(camPos2LookAt, camLookAt);
+
+					up = new THREE.Vector3;
+					up.crossVectors(camPos2LookAt, axisx);
+					if (up.y < 0) {
+						camera.up.y = -1;
+					}
+					else {
+						camera.up.y = 1;
+					}
+
+					camera.lookAt(camLookAt);
+				}
 			}
 	
 			function onDocumentMouseDown(event) {

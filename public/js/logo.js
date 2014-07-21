@@ -56,6 +56,7 @@ document.addEventListener ('DOMContentLoaded', function () {
     //
     var rand_bound = new Array(20, 30, 100, 30, 50, 20, 30); 
     var start_position = [];
+	var middle_position = [];
     var end_position = [];
     var start_time = [];
     var object_timer = [];
@@ -91,7 +92,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         camera = new THREE.PerspectiveCamera (
             45, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.y = 100;
-        camera.position.z = 400;
+        camera.position.z = 500;
         
         scene = new THREE.Scene();
         //
@@ -100,7 +101,7 @@ document.addEventListener ('DOMContentLoaded', function () {
             map:te,
             transparent: true,
         });
-        for ( var i = 0; i < 200; i++ ) {
+        for ( var i = 0; i < 100; i++ ) {
             particles[i] = new THREE.Sprite( material);
             particles[i].material.opacity = 0.0;
             initParticle( particles[i], i * 10, i );
@@ -111,7 +112,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         var text_texture = [];
         var c0 = document.createElement('canvas');
         var ctx0 = c0.getContext('2d');
-        ctx0.font = 'bolder 64px Arial Black';
+        ctx0.font = '72px Arial';
         var char_position = -0.5*ctx0.measureText(s).width;
         var c1;
         
@@ -119,9 +120,9 @@ document.addEventListener ('DOMContentLoaded', function () {
         {
             var c = document.createElement('canvas');
             var ctx = c.getContext('2d');
-            ctx.font = 'bolder 64px Arial Black';
+            ctx.font = '72px Arial';
             c.width = ctx.measureText(s[i]).width;
-            c.height = 48;
+            c.height = 64;
             if (i == 0)
             {
                 char_position += 0.5*c.width;
@@ -131,19 +132,19 @@ document.addEventListener ('DOMContentLoaded', function () {
                 char_position += 0.5*(c.width + c1.width);
             }
         
-            ctx.font = 'bolder 64px Arial Black';
+            ctx.font = '72px Arial';
 
-            ctx.fillStyle = "#FFFFFF";
+            ctx.fillStyle = "#154888";
 			ctx.fillText(s[i], 0, c.height);
             
             text_texture[i] = new THREE.Texture(c);
             text_texture[i].needsUpdate = true;
     
-            texts[i] = new THREE.Mesh(new THREE.PlaneGeometry(c.width, 0.8*c.height),
+            texts[i] = new THREE.Mesh(new THREE.PlaneGeometry(c.width, 0.7*c.height),
                                   new THREE.MeshBasicMaterial({map: text_texture[i]}));
             
             start_position[i] = new THREE.Vector3(0, 50, 0);
-            end_position[i] = new THREE.Vector3(char_position, 200, 0);
+            end_position[i] = new THREE.Vector3(char_position, -30, 0);
             
             texts[i].position.x = start_position[i].x;
             texts[i].position.y = start_position[i].y;
@@ -170,12 +171,20 @@ document.addEventListener ('DOMContentLoaded', function () {
         // Cube
         var geometry_planes = [];
         var material_allplane = new THREE.MeshBasicMaterial ( {  map: texture, side: THREE.DoubleSide, blending: THREE.NormalBlending} );
+		var material_blue = new THREE.MeshBasicMaterial ( { color: 0x154888, transparent:true, opacity: 0.8});
         var size = 100;
         var halfsize = size*0.5;
         for (var i = 0; i < 5; i++)
         {
             geometry_planes[i] = new THREE.PlaneGeometry (size, size);
-            planes[i] = new THREE.Mesh (geometry_planes[i], material_allplane);
+			if ( i !=  0)
+			{
+				planes[i] = new THREE.Mesh (geometry_planes[i], material_allplane);
+			}
+			else
+			{
+				planes[i] = new THREE.Mesh (geometry_planes[i], material_blue);
+			}
         }
         var axis1 = new THREE.Vector3(1, 0, 0);
         var axis2 = new THREE.Vector3(0, 1, 0);
@@ -196,14 +205,13 @@ document.addEventListener ('DOMContentLoaded', function () {
         subgroup2.position.z = halfsize - 1;
         
         var geometry_cube = new THREE.CubeGeometry( size-2, size-2, 4 );
-        var material_blue = new THREE.MeshBasicMaterial ( { color: 0x154888, transparent:true, opacity: 0.5});
         cube_cover = new THREE.Mesh( geometry_cube, material_blue);
         cube_cover.rotateOnAxis(axis1, Math.PI/2.0); cube_cover.position.z = -halfsize;
         subgroup2.add(cube_cover);
         group1.add(subgroup1);
         group1.add(subgroup2);
         //
-        group1.position.y = size - 20;
+        group1.position.y = size - 15;
         scene.add(group1);
         // Plane
         var geometry_plane = new THREE.PlaneGeometry (size, size);
@@ -212,6 +220,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         var material_plane = new THREE.MeshBasicMaterial ( { color: 0x555555, transparent: true, opacity: 0.1} );
 
         plane = new THREE.Mesh (geometry_plane, material_plane);
+		plane.position.y = 5;
         scene.add (plane);
         //
         /*var fgCanvas = document.createElement('canvas');
@@ -294,8 +303,8 @@ document.addEventListener ('DOMContentLoaded', function () {
         velocity = (targetRotation - plane.rotation.y) * 0.01;
         if (velocity > 0.2)
         {
-            for ( var i = 0; i < 200; i++ ) {
-                particles[i].material.opacity = 1.0;
+            for ( var i = 0; i < 100; i++ ) {
+                particles[i].material.opacity = 0.5;
             }
             start_open = true;
         }

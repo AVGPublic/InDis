@@ -49,10 +49,17 @@ function caculateposition(progress, startpos, endpos, rand_num1)
 
 document.addEventListener ('DOMContentLoaded', function () {
     //
-    var autostart = false;
+	var fgCanvas;
+	var bufferCanvas1;
+	var bufferCanvas2;
+	//
     var particle;
     var particles = [];
     var start_particle = false;
+	var particle_started = false;
+	var tween0 = [];
+	var tween1 = [];
+	var tween2 = [];
     //
     var rand_bound = new Array(20, 30, 100, 30, 50, 20, 30); 
     var start_position = [];
@@ -80,11 +87,17 @@ document.addEventListener ('DOMContentLoaded', function () {
 	var windowHalfY = window.innerHeight / 2;
     
     var auto_timer = 0;
-
+	//
+	var video_rgb, video_alpha;
+	//
     init();
     animate();
     
     function init() {
+		//video_rgb = document.getElementById('video_rgb'); 
+		//video_alpha = document.getElementById('video_alpha'); 
+		//
+		//
         renderer = new THREE.CanvasRenderer( { antialias: true, devicePixelRatio: 1 } );
         renderer.setSize (window.innerWidth, window.innerHeight);
 		renderer.setClearColorHex(0x000000, 0.0);
@@ -102,13 +115,17 @@ document.addEventListener ('DOMContentLoaded', function () {
             map:te,
             transparent: true,
         });
-        for ( var i = 0; i < 100; i++ ) {
-            particles[i] = new THREE.Sprite( material);
-            particles[i].material.opacity = 0.0;
-            initParticle( particles[i], i * 10, i );
-            scene.add(particles[i]);
-        }
-        //
+		for (var i = 0; i < 200; i++)
+		{
+			particles[i] = new THREE.Sprite( material);
+			scene.add(particles[i]);
+				
+			particles[i].position.set( 0, 100, 0 )
+			particles[i].scale.x = particles[i].scale.y = 0.05;
+			
+			particles[i].material.opacity = 0.0;
+		}
+		//
         var s = 'V-MEDIA';
         var text_texture = [];
         var c0 = document.createElement('canvas');
@@ -224,12 +241,14 @@ document.addEventListener ('DOMContentLoaded', function () {
 		plane.position.y = 5;
         scene.add (plane);
         //
-        /*var fgCanvas = document.createElement('canvas');
+        /*fgCanvas = document.createElement('canvas');
         document.getElementById('canvasdiv').appendChild (fgCanvas);
-        fgCanvas.width = window.innerWidth;
-        fgCanvas.height = window.innerHeight;
-        var ctx = fgCanvas.getContext("2d");
-        ctx.strokeRect(0, 0, fgCanvas.width, fgCanvas.height);*/
+        fgCanvas = document.getElementById('fgCanvas');
+		fgCanvas.width = 640;
+        fgCanvas.height = 360;*/
+		
+		bufferCanvas1 = document.createElement('canvas');
+		bufferCanvas2 = document.createElement('canvas');
         //
         document.getElementById('canvasdiv').addEventListener ('mousedown', onDocumentMouseDown, false);
         document.getElementById('canvasdiv').addEventListener ('touchstart', onDocumentTouchStart, false);
@@ -255,7 +274,6 @@ document.addEventListener ('DOMContentLoaded', function () {
     }
             
     function startAutoRotate () {
-
         auto_timer = 0;
     }
     var count = -1;
@@ -278,8 +296,7 @@ document.addEventListener ('DOMContentLoaded', function () {
                 texts[i].position.x = curpos.x;
                 texts[i].position.y = curpos.y;
                 texts[i].position.z = curpos.z;
-                
-                texts[i].material.opacity = Math.max(progress*2, 1.0);
+				texts[i].material.opacity = 1.0;
             }
         }
         if (start_open == true && count < 80)
@@ -289,10 +306,68 @@ document.addEventListener ('DOMContentLoaded', function () {
             dangle = dx;
             subgroup2.rotateOnAxis(axis1, dangle*Math.PI*1.47); 
         }
-        if (start_particle == true)
+        if (start_particle == true && particle_started == false)
         {
-            autostart = true;
+			for (var i = 0; i < 200; i++)
+			{
+				particles[i].material.opacity = 0.4;
+				
+				tween0[i] = new TWEEN.Tween( particles[i] )
+				.delay( i*7.5 )
+				.to( {}, 1500 )
+				.start();
+      
+				var ranx = Math.random()*200 - 100;
+				if (ranx > 0)
+				{
+					var rany = ranx + Math.random()*600;
+				}
+				else
+				{
+					var rany = -ranx + Math.random()*600;
+				}
+				tween1[i] = new TWEEN.Tween( particles[i].position )
+				.delay( i*7.5 )
+				.to( { x: ranx, y: rany, z: Math.random() * 100 - 50 }, 1500 )
+				.start();
+				
+				tween2[i] = new TWEEN.Tween( particles[i].scale )
+				.delay( i*7.5 )
+				.to( { x: 0, y: 0, z: 0}, 1500 )
+				.start();
+			}
+			/*video_rgb.play();
+			video_alpha.play();
+			var width = 352;
+			var height = 352;
+			
+			var buffer1 = bufferCanvas1.getContext('2d');
+			var buffer2 = bufferCanvas2.getContext('2d');
+
+			bufferCanvas1.width = width;
+			bufferCanvas1.height = height;
+			buffer1.drawImage(video_rgb, 0, 0);
+			
+			bufferCanvas2.width = width;
+			bufferCanvas2.height = height;
+			buffer2.clearRect(0,0, width, height);
+			buffer2.drawImage(video_alpha, 0, 0);
+
+			var ctx = fgCanvas.getContext('2d');
+			
+			var	image1 = buffer1.getImageData(0, 0, width,  height),
+			imageData = image1.data;
+			var image2 = buffer2.getImageData(0, 0, width,  height),
+			alphaData = image2.data;
+				
+			for (var i = 3, len = imageData.length; i < len; i = i + 4) {
+					imageData[i] = alphaData[i-3];
+			}
+	
+			ctx.putImageData(image1, 0, 0, 0, 0, width, height);
+					ctx.strokeRect(0, 0, 300, 300);	*/
             start_particle = false;
+			particle_started = true;
         }
         if (count > 1000)
         {
@@ -301,12 +376,10 @@ document.addEventListener ('DOMContentLoaded', function () {
     }
     function animate () {
         requestAnimationFrame (animate);
+		TWEEN.update();
         velocity = (targetRotation - plane.rotation.y) * 0.01;
         if (velocity > 0.2)
         {
-            for ( var i = 0; i < 100; i++ ) {
-                particles[i].material.opacity = 1.0;
-            }
             start_open = true;
         }
         plane.rotation.y = group1.rotation.y += velocity;
@@ -314,41 +387,9 @@ document.addEventListener ('DOMContentLoaded', function () {
         if (auto_timer === 0) {
             targetRotation += 0.025;
         }
-        TWEEN.update();
         renderer.render (scene, camera);
     }
 
-    function initParticle( particle, delay, i ) {
-        
-        var particle = this instanceof THREE.Sprite ? this : particle;
-        var delay = delay !== undefined ? delay : 0;
-
-        particle.position.set( 0, 100, 0 )
-        particle.scale.x = particle.scale.y = 0.05;
-
-        new TWEEN.Tween( particle )
-            .delay( delay )
-            .to( {}, 1000 )
-            .onComplete( initParticle )
-            .start();
-
-        var ranx = Math.random()*200 - 100;
-        if (ranx > 0)
-        {
-            var rany = ranx + Math.random()*400;
-        }
-        else
-        {
-            var rany = -ranx + Math.random()*400;
-        }
-        tween1 = new TWEEN.Tween( particle.position )
-            .delay( delay )
-            .to( { x: ranx, y: rany, z: Math.random() * 100 - 50 }, 1000 );
-        if (autostart == true)
-        {
-            tween1.start();
-        }
-    }
     function onDocumentMouseDown (e) {
         e.preventDefault();
         document.getElementById('canvasdiv').addEventListener ('mousemove', onDocumentMouseMove, false);

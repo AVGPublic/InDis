@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+	<style>
+		#canvas_fg1
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 3;
+		}
+		#canvas_fg2
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 3;
+		}
+	</style>
+	<head>
+		<title>AVGdemo</title>
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	</head>
+	<body>
+		<ul id="messages"></ul>
+		<canvas id="canvas_fg1" onclick="onCanvasClick(event)" width="1280px" height="800px"></canvas>
+		<canvas id="canvas_fg2" onclick="onCanvasClick(event)" width="1280px" height="800px"></canvas>
+		<script>
+			var interactive_poly = [];
+			function jsPoint(x, y) {
+				this.x = x;
+				this.y = y;
+			}
+			function isPointInPoly(poly, pt){
+				for(var c = false, i = -1, l = poly.length, j = l - 1; ++i < l; j = i)
+			   ((poly[i].y <= pt.y && pt.y < poly[j].y) || (poly[j].y <= pt.y && pt.y < poly[i].y))
+			   && (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x)
+			   && (c = !c);
+			   return c;
+			}
+			var socket = io();			
+			var sectionObj = new Object();
+			var ctx_fg1 = canvas_fg1.getContext('2d');
+			var polynum;
+			//
+			function getInteractiveLayers()
+			{
+				socket.emit('get interactiveLayers');
+			}
+			function getRandomColor() {
+				var letters = '0123456789ABCDEF'.split('');
+				var color = '#';
+				for (var i = 0; i < 6; i++ ) {
+					color += letters[Math.floor(Math.random() * 16)];
+				}
+				return color;
+			}
+			$(document).ready(function()
+			{
+				getInteractiveLayers();
+				socket.on('send interactivelayers', function(msg)
+				{
+					sectionObj = msg;
+					polynum = 0;
+					var currIndex = 0;
+					while(currIndex < sectionObj.indexArray.length)
+					{
+						currIndex += 1;
+						var startIndex = sectionObj.indexArray[currIndex];
+						currIndex += 1;
+						var endIndex = sectionObj.indexArray[currIndex];
+			
+						ctx_fg1.fillStyle="#FFFFFF";
+						ctx_fg1.beginPath();
+						ctx_fg1.moveTo(sectionObj.sectionArray[startIndex], sectionObj.sectionArray[startIndex+1]);
+
+						interactive_poly[polynum] = [];
+						for(var i = startIndex; i < endIndex - 2; i += 2)
+						{
+							var p = new jsPoint(sectionObj.sectionArray[i], sectionObj.sectionArray[i+1]);
+							interactive_poly[polynum].push(p);
+							//
+							ctx_fg1.lineTo(sectionObj.sectionArray[i+2], sectionObj.sectionArray[i+3]);
+							ctx_fg1.strokeStyle="green";
+						}
+						var p = new jsPoint(sectionObj.sectionArray[endIndex-2], sectionObj.sectionArray[endIndex-1]);
+						interactive_poly[polynum].push(p);
+						
+						polynum += 1;
+						ctx_fg1.lineTo(sectionObj.sectionArray[startIndex], sectionObj.sectionArray[startIndex+1]);
+						ctx_fg1.strokeStyle = getRandomColor();
+						ctx_fg1.stroke();
+						ctx_fg1.closePath();
+						
+						if (sectionObj.indexArray[currIndex+1] == -2)
+						{
+							currIndex += 2;
+						}
+					}
+				});
+			});
+			
+			function onCanvasClick(event) 
+			{
+				var x = event.clientX;
+				var y = event.clientY;
+				var pt = new jsPoint(x, y);
+				
+				ctx_fg1.beginPath();
+				ctx_fg1.arc(x, y, 5, 0, 2 * Math.PI, false);
+				ctx_fg1.fillStyle = 'green';
+				ctx_fg1.fill();
+	
+				ctx_fg1.closePath();
+				
+				for (var i = 0; i < polynum; i++)
+				{
+					if(isPointInPoly(interactive_poly[i], pt))
+					{
+						ctx_fg1.beginPath();
+						ctx_fg1.moveTo(interactive_poly[i][0].x, interactive_poly[i][0].y);
+
+						for (var j = 1; j < interactive_poly[i].length; j++)
+						{
+							ctx_fg1.lineTo(interactive_poly[i][j].x, interactive_poly[i][j].y);
+						}
+						ctx_fg1.lineTo(interactive_poly[i][0].x, interactive_poly[i][0].y);
+						ctx_fg1.strokeStyle = "#FF0000";
+						ctx_fg1.stroke();
+						ctx_fg1.closePath();
+					}
+				}
+			}
+	
+		</script>
+	</body>
+</html>

@@ -29,12 +29,22 @@ app.get('/interactive_video', function(req, res){
   res.sendfile('public/static/interactive_video.html');
 });
 
+app.get('/interactive_display', function(req, res){
+  res.sendfile('public/static/interactive_display.html');
+});
+
 io.on('connection', function(socket){
   socket.on('get location', function()
   {
 	//var location = addons.getLocationFromFile();
 	var location = addons.getLocation();
 	io.emit('send location', location);
+  });
+  
+  socket.on('get interactiveLayers', function()
+  {
+	 var interactivelayers = addons.getInteractiveObjects("E:\\InDis\\public\\interactivelayer\\15_18", 4);
+	 io.emit('send interactivelayers', interactivelayers);
   });
 });
 

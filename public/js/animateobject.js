@@ -53,49 +53,80 @@ function indisObject(mask, img, live)
 	this._mask = mask;
 	this._image = img;
 	//
+	this._rect = [];
+	this._rect[0] = 0;
+	this._rect[1] = 0;
+	this._rect[2] = this._image.width;
+	this._rect[3] = this._image.height;
+	//
 	this._animatastack = [];
 	//
 	this._opacitypointer = -1;
+	this._imagerecttranspointer = -1;
+	this._affinetranspointer = -1;
 	//
+	this.transFromRectToRect = transFromRectToRect;
 	this.easeIn = easeIn;
 	this.breath = breath;
 	this.animate = animate;
 	this.renderImage = renderImage;
-	this.renderFrameImageRect = renderFrameImageRect;
-	this.renderImageInMask = renderImageInMask;
+	this.renderFrameInImageRect = renderFrameInImageRect;
+	this.renderFrameInMaskRect = renderFrameInMaskRect;
 	this.renderMask = renderMask;
 	this.setTopleft = setTopleft;
 	this.testObjectClick = testObjectClick;
 	
-	/*function emergeTo(top, left, width, height)
+	function transFromRectToRect(top1, left1, width1, height1, top2, left2, width2, height2, duration)
 	{
-		this._innerclock = 0;
-		this._bTrans = true;
+		this.live = true;
+		this._imagerecttranspointer = this._animatastack.length;
 		
-		this._transStart[0] = top;
-		this._transStart[1] = left;
-		this._transStart[2] = 0;
-		this._transStart[3] = 0;
-	
-		this._transEnd[0] = top;
-		this._transEnd[1] = left;
-		this._transEnd[2] = width;
-		this._transEnd[3] = height;			
-	}*/
+		var ani = [];
+		ani[0] = new animata();
+		ani[0].live = true;
+		ani[0].time = 0;
+		ani[0].timekey.push(0); ani[0].values.push(top1); 
+		ani[0].timekey.push(duration); ani[0].values.push(top2);
+		this._animatastack.push(ani[0]);
+
+		ani[1] = new animata();
+		ani[1].live = true;
+		ani[1].time = 0;
+		ani[1].timekey.push(0); ani[1].values.push(left1); 
+		ani[1].timekey.push(duration); ani[1].values.push(left2);
+		this._animatastack.push(ani[1]);
+
+		ani[2] = new animata();
+		ani[2].live = true;
+		ani[2].time = 0;
+		ani[2].timekey.push(0); ani[2].values.push(width1); 
+		ani[2].timekey.push(duration); ani[2].values.push(width2);
+		this._animatastack.push(ani[2]);
+
+		ani[3] = new animata();
+		ani[3].live = true;
+		ani[3].time = 0;
+		ani[3].timekey.push(0); ani[3].values.push(height1); 
+		ani[3].timekey.push(duration); ani[3].values.push(height2);
+		this._animatastack.push(ani[3]);
+	}
 	function easeIn(duration)
 	{
 		this.live = true;
+		this._opacitypointer = this._animatastack.length;
+		//
 		var ani = new animata();
 		ani.live = true;
 		ani.time = 0;
 		ani.timekey.push(0); ani.values.push(0); 
 		ani.timekey.push(duration); ani.values.push(1);
-		this._opacitypointer = this._animatastack.length;
 		this._animatastack.push(ani);
 	}
 	function breath(duration)
 	{
 		this.live = true;
+		this._opacitypointer = this._animatastack.length;
+		//
 		this.autodeath = true;
 		var ani = new animata();
 		ani.live = true;
@@ -104,7 +135,6 @@ function indisObject(mask, img, live)
 		ani.timekey.push(0.2*duration);  ani.values.push(1.0);
 		ani.timekey.push(0.8*duration);  ani.values.push(1.0);
 		ani.timekey.push(1.0*duration);  ani.values.push(0);
-		this._opacitypointer = this._animatastack.length;
 		this._animatastack.push(ani);
 	}
 
@@ -124,7 +154,7 @@ function indisObject(mask, img, live)
 			this.live = false;
 		}
 	}
-	function renderFrameImageRect(context)
+	function renderFrameInImageRect(context)
 	{
 		if (this._opacitypointer != -1)
 		{
@@ -133,13 +163,20 @@ function indisObject(mask, img, live)
 				context.globalAlpha = this._animatastack[this._opacitypointer].value;
 			}
 		}
-		this.renderImage(context, 0, 0, this._image.width, this._image.height);
+		if (this._imagerecttranspointer != -1)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[this._imagerecttranspointer + i].live == true)
+				{	
+					this._rect[i] = this._animatastack[this._imagerecttranspointer + i].value;
+				}
+			}
+		}
+		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
 	}
-	function renderImage(context, top, left, width, height)
-	{
-		context.drawImage(this._image, top, left, width, height);
-	}
-	function renderImageInMask(context)
+
+	function renderFrameInMaskRect(context)
 	{
 		if (this._opacitypointer != -1)
 		{
@@ -164,6 +201,11 @@ function indisObject(mask, img, live)
 		context.drawImage(this._image, 0, 0);
 		context.restore();
 	}
+	//
+	function renderImage(context, top, left, width, height)
+	{
+		context.drawImage(this._image, top, left, width, height);
+	}
 	function renderMask(context)
 	{
 		context.beginPath();
@@ -177,8 +219,8 @@ function indisObject(mask, img, live)
 		context.closePath();
 		context.strokeStyle = "#0000FF";
 		context.stroke();
-
 	}
+	//
 	function setTopleft(top, left)
 	{
 		for (var j = 0; j < this._mask.length; j++)

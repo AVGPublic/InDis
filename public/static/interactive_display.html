@@ -14,27 +14,39 @@
 			position:absolute;
 			left: 0px;
 			top: 0px;
-			z-index: 8;
+			z-index: 2;
 		}
 		#canvas_fg2
 		{
 			position:absolute;
 			left: 0px;
 			top: 0px;
-			z-index: 12;
+			z-index: 3;
+			
+			mix-blend-mode: darken;
 		}
 		#img_layer1
 		{
 			position:absolute;
 			left: 0px;
 			top: 0px;
-			z-index: 4;
+			z-index: 1;
 		}
 		#img_bg
 		{
 			position:absolute;
 			left: 0px;
 			top: 0px;
+			opacity: 1.0;
+			z-index: -1;
+		}
+		
+		#video
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 1;
 			z-index: 0;
 		}
 	</style>
@@ -48,9 +60,10 @@
 		<div id = "host_div" onclick="onClick(event)">
 		<img id="img_layer2_id1" src = "interactivelayer/VG-P3_Camera.png" hidden = "true" />
 		<img id="img_layer1" src = "interactivelayer/VG_corners.png" hidden = "true"/>
-		<img id = "img_bg" src = "interactivelayer/VG_BG.png"></canvas>
+		<<img id = "img_bg" src = "interactivelayer/VG_BG.png">
 		<canvas id="canvas_fg1" > </canvas>
 		<canvas id="canvas_fg2" > </canvas>
+	
 		</div>
 		<script>
 			var objects_layer1 = [];
@@ -77,7 +90,7 @@
 			
 			var ctx_fg1 = canvas_fg1.getContext('2d');
 			var ctx_fg2 = canvas_fg2.getContext('2d');
-
+			
 			var objectnum;
 			
 			var width = img_bg.width;
@@ -147,16 +160,20 @@
 					if (objects_layer1[i].live)
 					{
 						test += 1;
-						objects_layer1[i].renderImageInMask(ctx_fg1);
+						objects_layer1[i].renderFrameInMaskRect(ctx_fg1);
 					}
 				}
+				ctx_fg1.strokeRect(0, 0, 300, 300);
+
+			
 				//
 				objects_layer2[0].animate();
 				ctx_fg2.clearRect(0, 0, canvas_fg2.width, canvas_fg2.height);
 				if (objects_layer2[0].live)
 				{
-					objects_layer2[0].renderFrameImageRect(ctx_fg2);
+					objects_layer2[0].renderFrameInImageRect(ctx_fg2);
 				}
+				ctx_fg2.strokeRect(200, 200, 400, 400);
 			}
 
 			
@@ -166,23 +183,24 @@
 				var y = event.clientY;
 				var pt = new jsPoint(x, y);
 				
-				/*ctx_fg1.beginPath();
+				ctx_fg1.beginPath();
 				ctx_fg1.arc(x, y, 5, 0, 2 * Math.PI, false);
-				ctx_fg1.fillStyle = 'green';
+				ctx_fg1.fillStyle = 'blue';
 				ctx_fg1.fill();
 	
-				ctx_fg1.closePath();*/
+				ctx_fg1.closePath();
 
 				for (var i = 0; i < objectnum; i++)
 				{
 					if(objects_layer1[i].testObjectClick(pt))
 					{
-						objects_layer1[i].breath(100);
+						objects_layer1[i].breath(70);
 						//objects_layer1[i].renderImageInMask(ctx_fg2);
 						//objects_layer1[0].renderImageInMask(ctx_fg2);
 						if (i == 5)
 						{
-							objects_layer2[0].easeIn(30);
+							objects_layer2[0].easeIn(100);
+							objects_layer2[0].transFromRectToRect(0, 0, 669, 0, 200, 200, 669, 362, 30);
 						}
 					}
 				}

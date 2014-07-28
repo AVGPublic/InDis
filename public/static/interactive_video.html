@@ -13,7 +13,7 @@
 			position:absolute;
 			left: 0px;
 			top: 0px;
-			z-index: 2;
+			z-index: 3;
 			alpha: 0;
 			opacity: 0.3;
 		}
@@ -22,9 +22,18 @@
 			position:absolute;
 			left: 0px;
 			top: 0px;
-			z-index: 3;
-			alpha: 0;
-			opacity: 0.3;
+			z-index: 12;
+			alpha: 0.3;
+			mix-blend-mode: overlay;
+		}
+		#canvas_light
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 2;
+			opacity: 1;
+			mix-blend-mode: overlay;
 		}
 		#toggle
 		{
@@ -32,33 +41,62 @@
 			left: 1223px;
 			top: 680px;
 			z-index: 4;
+			cursor: pointer;
+		}
+		.img
+		{
+			float: left;
 		}
 	</style>
 	<head>
 		<title>AVGdemo</title>
-		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<script src="/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
+		<script src="/bootstrap/js/jquery-1.8.3.min.js"></script>
+		<script src = "/js/test_console.js"></script>
+		<script src = "/js/animateobject.js"></script>
 	</head>
 	<body>
 		<ul id="messages"></ul>
 		<video id="video" src="/video/youfromstar1.mp4" controls></video>
-		<canvas id="canvas_time" width="800px" height="600px"></canvas>
-		<canvas id="canvas_block" onclick="onCanvasClick(event)" width="1280px" height="680px"></canvas>
+		<canvas id="canvas_time" width="1280px" height="690px"></canvas>
+		<canvas id="canvas_block" onclick="onCanvasClick(event)" width="1280px" height="720px"></canvas>
 		<button id="toggle" type="button" class="btn btn-default btn-lg">
 			<span class="glyphicon glyphicon-hand-up"></span>
 		</button>
+		<img id="imgLight" class="img" src="/pics/SC-皮衣.png"/>
+		<canvas id="canvas_light" > </canvas>
 		<script>
 			var video=document.getElementById('video');
 			var canvas_time=document.getElementById('canvas_time');
 			var ctx_time=canvas_time.getContext('2d');
 			var canvas_block=document.getElementById('canvas_block');
 			var ctx_block=canvas_block.getContext('2d');
-			
+			var imgLight=document.getElementById('imgLight');
+			var canvas_light=document.getElementById('canvas_light');
+			var ctx_light = canvas_light.getContext('2d');
 			var socket = io();			
 			
 			var sectionObj = new Object();
+			
+			var yOffset = 7;
+			
+			var stepY = 0;
+			var maxY = 400;
+			var lightWidth = 322;
+			var lightX = 470;
+			var lightY = 320;
+			var lightHeight = 77;
+			
+			var startTime1 = 912;
+			var startTime2 = 913;
+			var imgAnimationSetFlag = 0;
+			var imgSetFlag = 1;
+			
+			var objectLight;
+			canvas_light.width = 1280;
+			canvas_light.height = 690;
 			
 			function getLocation()
 			{
@@ -66,11 +104,12 @@
 			}
 			function judgeTime(t)
 			{
-				for(var i = 0; i < sectionObj.sectionNumber*2; i = i + 2)
+				var timePerFrame = 1 / sectionObj.fps;
+				for(var i = 0; i < sectionObj.sectionNumber; i++)
 				{
-					if (t >= sectionObj.timeArray[i] && t <= sectionObj.timeArray[i+1])
+					if (t >= sectionObj.timeArray[i] * timePerFrame && t <= sectionObj.timeArray[i+1] * timePerFrame)
 					{
-						return  -1 * (i / 2 + 1);
+						return  -1 * (i + 1);
 					}
 				}
 				return 0;
@@ -88,61 +127,104 @@
 				}
 			}
 			
-			$(document).ready(function()
+			function animate () 
+			{
+				requestAnimationFrame (animate);
+				objectLight.animate();
+				ctx_light.clearRect(0, 0, canvas_light.width, canvas_light.height);
+				if (objectLight.live)
 				{
-					getLocation();
-					$("#toggle").click(function(){
-						$("#canvas_block").toggle();
-					});
-					socket.on('send location', function(msg)
-					{
-						sectionObj = msg;
-					});
+					objectLight.renderFrameInImageRect(ctx_light);
+				}
+				ctx_light.strokeRect(200, 200, 400, 400);
+			}
+			
+			$(document).ready(function()
+			{
+				getLocation();
+				$("#toggle").click(function(){
 					$("#canvas_block").toggle();
 				});
+				socket.on('send location', function(msg)
+				{
+					sectionObj = msg;
+				});
+				$("#canvas_block").toggle();
+				interactive_poly = [];
+				interactive_poly.push(new jsPoint(0, 0));
+				interactive_poly.push(new jsPoint(669, 0));
+				interactive_poly.push(new jsPoint(669,332));
+				interactive_poly.push(new jsPoint(0, 332));
+			
+				objectLight = new indisObject(interactive_poly, imgLight, false);
+				//objects_layer2[0].renderImage(ctx_fg1, canvas_fg1, 0, 0, 669, 332);
+				animate();
+			});
 			
 			var time = video.currentTime;
 			var clearFlag = 0;
-			video.ontimeupdate = function()
+			var interval;
+			video.addEventListener('play', function() 
+			{
+				clearInterval(interval);
+				interval = setInterval(drawFrame, 1 / sectionObj.fps * 1000)
+			}, false);
+			
+			function drawFrame()
 			{
 				time = video.currentTime;
 				ctx_time.fillStyle = "blue";
-				ctx_time.font = '80pt Calibri';
-				ctx_time.clearRect(0, 500, 800, 300);
-				ctx_time.fillText(time, 100, 600);
-				
+				ctx_time.font = '60pt Calibri';
+				ctx_time.clearRect(0, 0, canvas_time.width, canvas_time.height);
+				ctx_time.fillText(time, 600, 100);
+				//
+				if (time <= startTime2 && time >= startTime1 && imgAnimationSetFlag == 0)
+				{
+					objectLight.easeIn(10);
+					objectLight.transFromRectToRect(340, 387, 207, 74, 661, 403, 207, 74, 30);
+					imgAnimationSetFlag = 1;
+					imgSetFlag = 0;
+				}
+				else
+				{
+					if ((time >= startTime2 || time < startTime1) && imgSetFlag == 0)
+					{
+						imgSetFlag = 1;
+						imgAnimationSetFlag = 0;
+					}
+				}
+				//
 				var currentSection = judgeTime(time);
 				if(currentSection != 0)
-				{
+				{				
 					$('#toggle').attr('disabled', false);
+					ctx_block.clearRect(0, 0, canvas_block.width, canvas_block.height);
 					var startIndex = sectionObj.indexArray.indexOf(currentSection) + 1;
 					var endIndex = sectionObj.indexArray.indexOf(currentSection - 1);
 					var cIndex = startIndex;
 					for(cIndex = startIndex; cIndex < endIndex - 1; cIndex++)
 					{
 						var contourPointNumber = sectionObj.indexArray[cIndex + 1] - sectionObj.indexArray[cIndex];
-						ctx_block.fillStyle="#FFFFFF";
+						ctx_block.fillStyle="#00FFFF";
+						ctx_block.save();
 						ctx_block.beginPath();
-						ctx_block.moveTo(sectionObj.sectionArray[sectionObj.indexArray[cIndex]], sectionObj.sectionArray[sectionObj.indexArray[cIndex] + 1]);
+						ctx_block.moveTo(sectionObj.sectionArray[sectionObj.indexArray[cIndex]], sectionObj.sectionArray[sectionObj.indexArray[cIndex] + 1] + yOffset);
 						var i = 0;
-						var tempX = 0;
-						var tempY = 0;
 						for(i = sectionObj.indexArray[cIndex] + 2; i < contourPointNumber + sectionObj.indexArray[cIndex]; i = i + 2)
 						{
-							ctx_block.lineTo(sectionObj.sectionArray[i], sectionObj.sectionArray[i+1]);
-							tempX += sectionObj.sectionArray[i];
-							tempY += sectionObj.sectionArray[i+1];
+							ctx_block.lineTo(sectionObj.sectionArray[i], sectionObj.sectionArray[i+1] + yOffset);
 						}
-						tempX = tempX / contourPointNumber * 2;
-						tempY = tempY / contourPointNumber * 2;
-						var grd = ctx_block.createRadialGradient(tempX,tempY,5,tempX,tempY,100);
-						grd.addColorStop(0,"red");
-						grd.addColorStop(1,"white");
-
-						ctx_block.fillStyle=grd;
-						ctx_block.fill();
+						ctx_block.closePath();
+						//ctx_block.fill();
+						ctx_block.clip();
+						//ctx_block.drawImage(img_light, lightX, lightY + stepY, lightWidth, lightHeight);
+						ctx_block.restore();
+						stepY = stepY + 10;
+						if(stepY > maxY)
+						{
+							stepY = 0;
+						}
 					}
-					clearFlag = 0;
 				}
 				else
 				{

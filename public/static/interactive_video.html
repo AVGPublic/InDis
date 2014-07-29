@@ -53,8 +53,7 @@
 		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<script src="/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="/bootstrap/js/jquery-1.8.3.min.js"></script>
-		<script src = "/js/test_console.js"></script>
+		<script src="/js/jquery-1.8.3.min.js"></script>
 		<script src = "/js/animateobject.js"></script>
 	</head>
 	<body>
@@ -65,7 +64,7 @@
 		<button id="toggle" type="button" class="btn btn-default btn-lg">
 			<span class="glyphicon glyphicon-hand-up"></span>
 		</button>
-		<img id="imgLight" class="img" src="/pics/SC-皮衣.png"/>
+		<img id="imgLight" class="img" src="/image/SC-Jacket.png"/>
 		<canvas id="canvas_light" > </canvas>
 		<script>
 			var video=document.getElementById('video');
@@ -157,7 +156,6 @@
 				interactive_poly.push(new jsPoint(0, 332));
 			
 				objectLight = new indisObject(interactive_poly, imgLight, false);
-				//objects_layer2[0].renderImage(ctx_fg1, canvas_fg1, 0, 0, 669, 332);
 				animate();
 			});
 			

@@ -23,7 +23,7 @@
 			top: 0px;
 			z-index: 3;
 			
-			mix-blend-mode: darken;
+			//mix-blend-mode: overlay;
 		}
 		#img_layer1
 		{
@@ -31,6 +31,14 @@
 			left: 0px;
 			top: 0px;
 			z-index: 1;
+		}
+		#img_bg_blur
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 0.0;
+			z-index: 0;
 		}
 		#img_bg
 		{
@@ -52,15 +60,18 @@
 	</style>
 	<head>
 		<title>AVGdemo</title>
-		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+		<script src="js/jquery-1.8.3.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="js/animateobject.js"></script>
 	</head>
 	<body>
 		<div id = "host_div" onclick="onClick(event)">
+		<!--<img id="img_layer2_id1" src = "image/VG-P3_Camera.png" hidden = "true" />-->
 		<img id="img_layer2_id1" src = "image/VG-P3_Camera.png" hidden = "true" />
 		<img id="img_layer1" src = "image/VG_corners.png" hidden = "true"/>
-		<<img id = "img_bg" src = "image/VG_BG.png">
+		<img id = "img_bg" src = "image/VG_BG.png">
+		<img id = "img_bg_blur" src = "image/VG_BG_blur.png">
+		<img id = "img_light" src = "image/light1.png", hidden = "true">
 		<canvas id="canvas_fg1" > </canvas>
 		<canvas id="canvas_fg2" > </canvas>
 	
@@ -68,6 +79,7 @@
 		<script>
 			var objects_layer1 = [];
 			var objects_layer2 = [];
+			var objects_layer2_subobjets = [];
 			function getInteractiveLayers()
 			{
 				socket.emit('get interactiveLayers');
@@ -87,6 +99,7 @@
 			var img_bg = document.getElementById('img_bg');
 			var img_layer1 = document.getElementById('img_layer1');
 			var	img_layer2_id1 = document.getElementById('img_layer2_id1');
+			var img_light = document.getElementById('img_light');
 			
 			var ctx_fg1 = canvas_fg1.getContext('2d');
 			var ctx_fg2 = canvas_fg2.getContext('2d');
@@ -143,7 +156,12 @@
 				interactive_poly.push(new jsPoint(0, 332));
 				
 				objects_layer2[0] = new indisObject(interactive_poly, img_layer2_id1, false);
-				//objects_layer2[0].renderImage(ctx_fg1, canvas_fg1, 0, 0, 669, 332);
+				var closeButton = new staticObject(360, 0, 63, 66, objects_layer2[0].imagewidth, objects_layer2[0].imageheight);
+				objects_layer2[0].appendChildObject(closeButton, "staticChild");
+				
+				var lightobject = new indisObject(interactive_poly, img_light, false);
+				objects_layer2[0].appendChildObject(lightobject, "independentChild");
+				
 				animate();
 			});
 			
@@ -163,9 +181,6 @@
 						objects_layer1[i].renderFrameInMaskRect(ctx_fg1);
 					}
 				}
-				ctx_fg1.strokeRect(0, 0, 300, 300);
-
-			
 				//
 				objects_layer2[0].animate();
 				ctx_fg2.clearRect(0, 0, canvas_fg2.width, canvas_fg2.height);
@@ -173,7 +188,6 @@
 				{
 					objects_layer2[0].renderFrameInImageRect(ctx_fg2);
 				}
-				ctx_fg2.strokeRect(200, 200, 400, 400);
 			}
 
 			
@@ -190,6 +204,16 @@
 	
 				ctx_fg1.closePath();
 
+				if (objects_layer2[0].live)
+				{
+					var action = objects_layer2[0].testObjectClickReturnAction(pt);
+					if (action == "close")
+					{
+						objects_layer2[0].easeOut(30);
+						objects_layer2[0].transFromRectToRect(200, 200, 669, 362, 200, 200, 669, 0, 30);
+						$('#img_bg_blur').fadeTo(300, 0.0);
+					}
+				}
 				for (var i = 0; i < objectnum; i++)
 				{
 					if(objects_layer1[i].testObjectClick(pt))
@@ -199,8 +223,15 @@
 						//objects_layer1[0].renderImageInMask(ctx_fg2);
 						if (i == 5)
 						{
-							objects_layer2[0].easeIn(100);
-							objects_layer2[0].transFromRectToRect(0, 0, 669, 0, 200, 200, 669, 362, 30);
+							$('#img_bg_blur').fadeTo(100, 1);
+							objects_layer2[0].easeIn(30);
+							objects_layer2[0].transFromRectToRect(200, 200, 669, 0, 200, 200, 669, 362, 40);
+							//
+							objects_layer2[0].setAnimateRootPointer(0);
+							objects_layer2[0].easeIn(20);
+							objects_layer2[0].transFromRectToRect(200, 200, 0, 0, 200, 200, 669, 669*9/16, 20);
+							objects_layer2[0].resetAnimateRootPointer();
+							
 						}
 					}
 				}

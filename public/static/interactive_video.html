@@ -206,6 +206,11 @@
 				//
 				img_subtile = document.getElementById("img_layer2_id0");	
 				subtitleObject = new indisObject(null, img_subtile, false);
+				
+				var img_underneath = document.getElementById("img_layer2_id1");
+				var underneathObject = new indisObject(null, img_underneath, false);
+				subtitleObject.appendChildObject(underneathObject, "independentChild");
+				
 				var img_channel = document.getElementById("img_layer2_id2");
 				var channelObject = new indisObject(null, img_channel, false);
 				subtitleObject.appendChildObject(channelObject, "independentChild");
@@ -255,8 +260,6 @@
 					subtitleObject.easeOut(50);
 					subtitleEnd = false;
 					subtitleOff = true;
-					subtitleBegin = false;
-					subtitleOn = false;
 				}
 				
 				if (time >= testtime - 10 && time <= testtime + 10 && !subtitleOn)
@@ -271,11 +274,27 @@
 					subtitleObject.easeIn(80);
 					subtitleObject.transFromRectToRect(anchor1.x - 300, anchor1.y ,  boardSize.width + 300, boardSize.height, 
 													   anchor1.x , anchor1.y,  boardSize.width, boardSize.height, 50);			
-					subtitleObject.setAnimateRootPointer(0);
-					subtitleObject.easeIn(80);
-					subtitleObject.transFromRectToRect(anchor1.x + 50 + 0.18*boardSize.width, anchor1.y + 33 + 0.14*boardSize.height,  0,  0, 
-													   anchor1.x + 50, anchor1.y + 33,  0.36*boardSize.width, 0.28*boardSize.height, 80);
-					subtitleObject.resetAnimateRootPointer();
+													   
+					setTimeout(function()
+							{
+								subtitleObject.setAnimateRootPointer(1);
+								subtitleObject.easeIn(80);
+								subtitleObject.transFromRectToRect(anchor1.x+80, anchor1.y + 0.5*boardSize.height ,  0, 0, 
+													   anchor1.x , anchor1.y,  boardSize.width, boardSize.height, 50);
+								setTimeout(function()
+										{
+											subtitleObject.setAnimateRootPointer(0);
+											subtitleObject.easeIn(120);
+											subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,  boardSize.width, boardSize.height, 
+													   anchor1.x , anchor1.y,  boardSize.width, boardSize.height, 50);	
+											//
+											subtitleObject.resetAnimateRootPointer();
+										}, 600);
+								//
+
+							}, 200);
+										 
+					
 					
 					subtitleBegin = false;
 					subtitleOn = true;

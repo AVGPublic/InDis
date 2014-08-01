@@ -1,3 +1,7 @@
+function jsSize(width, height){
+	this.width = width;
+	this.height = height;
+}
 function jsPoint(x, y) {
 	this.x = x;
 	this.y = y;
@@ -27,6 +31,7 @@ function staticObject(left, top, width, height, parentwidth, parentheight)
 	this._rect[3] = (top+height)/parentheight;
 	
 	this.testObjectClick = testObjectClick;
+	this.sketchObjectRespondingRegion = sketchObjectRespondingRegion;
 	function testObjectClick(parentRect, pt)
 	{
 		var mask = [];
@@ -41,6 +46,23 @@ function staticObject(left, top, width, height, parentwidth, parentheight)
 		mask.push(new jsPoint(x1, y2));
 
 		return(isPointInPoly(mask, pt));
+	}
+	function sketchObjectRespondingRegion(parentRect, context)
+	{
+		var x1, y1, x2, y2;
+		x1 = parentRect[0] + this._rect[0]*parentRect[2];
+		y1 = parentRect[1] + this._rect[1]*parentRect[3];
+		x2 = parentRect[0] + this._rect[2]*parentRect[2];
+		y2 = parentRect[1] + this._rect[3]*parentRect[3];
+		
+		context.beginPath();
+		context.moveTo(x1, y1);
+		context.lineTo(x1, y2);
+		context.lineTo(x2, y2);
+		context.lineTo(x2, y1);
+		context.lineTo(x1, y1);
+		context.stroke();
+		context.closePath();
 	}
 }
 
@@ -76,21 +98,37 @@ function animata()
 function indisObject(mask, img, live)
 {
 	this.live = live;
+	this.id;
 	//
 	this.autodeath = false;
 	this.onClickAction = "NULL";
 	//
-	this._mask = mask;
+	this._mask = [];
+	if (mask != null)
+	{
+		this._mask = mask;
+	}
+	else
+	{
+		this._mask.push(new jsPoint(0, 0));
+		this._mask.push(new jsPoint(img.width, 0));
+		this._mask.push(new jsPoint(img.width,img.height));
+		this._mask.push(new jsPoint(0, img.height));
+	}
 	this._image = img;
 	//
-	this.imagewidth = this._image.width;
-	this.imageheight = this._image.height;
+	this.imageCSSwidth = this._image.width;
+	this.imageCSSheight = this._image.height;
+	this.imageNaturalwidth = this._image.naturalWidth;
+	this.imageNaturalheight = this._image.naturalHeight;
 	//
 	this._rect = [];
 	this._rect[0] = 0;
 	this._rect[1] = 0;
-	this._rect[2] = this._image.width;
-	this._rect[3] = this._image.height;
+	this._rect[2] = this.imageCSSwidth;
+	this._rect[3] = this.imageCSSheight;
+	
+	this._localAlpha = 0;
 	//
 	this._animatastack = [];
 	//
@@ -108,8 +146,10 @@ function indisObject(mask, img, live)
 	this.setAnimateRootPointer = setAnimateRootPointer;
 	this.appendChildObject = appendChildObject;
 	this.transFromRectToRect = transFromRectToRect;
+	this.transFromRectToRectBounce = transFromRectToRectBounce;
 	this.easeIn = easeIn;
 	this.easeOut = easeOut;
+	this.easeInHighlightEaseOut = easeInHighlightEaseOut;
 	this.breath = breath;
 	this.animate = animate;
 	this.renderImage = renderImage;
@@ -120,7 +160,7 @@ function indisObject(mask, img, live)
 	this.testObjectClick = testObjectClick;
 	this.testObjectClickReturnAction = testObjectClickReturnAction;
 	
-	function resetAnimateRootPointer(pointer)
+	function resetAnimateRootPointer()
 	{
 		this._animaterootpointer = -1;
 	}
@@ -139,6 +179,56 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack.push(child);
 		}
 	}
+	function transFromRectToRectBounce(left1, top1, width1, height1, left2, top2, width2, height2, duration)
+	{
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._imagerecttranspointer = this._animatastack.length;
+			
+			var ani = [];
+			ani[0] = new animata();
+			ani[0].live = true;
+			ani[0].time = 0;
+			ani[0].timekey.push(0); ani[0].values.push(left1); 
+			ani[0].timekey.push(0.7*duration); ani[0].values.push(left2 + 0.2*(left2 - left1));
+			ani[0].timekey.push(0.9*duration); ani[0].values.push(left2 - 0.1*(left2 - left1));
+			ani[0].timekey.push(duration); ani[0].values.push(left2);
+			this._animatastack.push(ani[0]);
+
+			ani[1] = new animata();
+			ani[1].live = true;
+			ani[1].time = 0;
+			ani[1].timekey.push(0); ani[1].values.push(top1); 
+			ani[1].timekey.push(0.7*duration); ani[1].values.push(top2 + 0.2*(top2 - top1));
+			ani[1].timekey.push(0.9*duration); ani[1].values.push(top2 - 0.1*(top2 - top1));
+			ani[1].timekey.push(duration); ani[1].values.push(top2);
+			this._animatastack.push(ani[1]);
+
+			ani[2] = new animata();
+			ani[2].live = true;
+			ani[2].time = 0;
+			ani[2].timekey.push(0); ani[2].values.push(width1); 
+			ani[2].timekey.push(0.7*duration); ani[2].values.push(width2 + 0.2*(width2 - width1));
+			ani[2].timekey.push(0.9*duration); ani[2].values.push(width2 - 0.1*(width2 - width1));
+			ani[2].timekey.push(duration); ani[2].values.push(width2); 
+
+			this._animatastack.push(ani[2]);
+
+			ani[3] = new animata();
+			ani[3].live = true;
+			ani[3].time = 0;
+			ani[3].timekey.push(0); ani[3].values.push(height1); 
+			ani[3].timekey.push(0.7*duration); ani[3].values.push(height2 + 0.2*(height2 - height1));
+			ani[3].timekey.push(0.9*duration); ani[3].values.push(height2 - 0.1*(height2 - height1));
+			ani[3].timekey.push(duration); ani[3].values.push(height2);
+			this._animatastack.push(ani[3]);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration);
+		}
+	}
 	function transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration)
 	{
 		if (this._animaterootpointer == -1)
@@ -150,15 +240,15 @@ function indisObject(mask, img, live)
 			ani[0] = new animata();
 			ani[0].live = true;
 			ani[0].time = 0;
-			ani[0].timekey.push(0); ani[0].values.push(top1); 
-			ani[0].timekey.push(duration); ani[0].values.push(top2);
+			ani[0].timekey.push(0); ani[0].values.push(left1); 
+			ani[0].timekey.push(duration); ani[0].values.push(left2);
 			this._animatastack.push(ani[0]);
 
 			ani[1] = new animata();
 			ani[1].live = true;
 			ani[1].time = 0;
-			ani[1].timekey.push(0); ani[1].values.push(left1); 
-			ani[1].timekey.push(duration); ani[1].values.push(left2);
+			ani[1].timekey.push(0); ani[1].values.push(top1); 
+			ani[1].timekey.push(duration); ani[1].values.push(top2);
 			this._animatastack.push(ani[1]);
 
 			ani[2] = new animata();
@@ -180,11 +270,35 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration);
 		}
 	}
+	function easeInHighlightEaseOut(duration)
+	{
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this.autodeath = true;
+			this._opacitypointer = this._animatastack.length;
+			//
+			var ani = new animata();
+			ani.live = true;
+			ani.time = 0;
+			ani.timekey.push(0); ani.values.push(0); 
+			ani.timekey.push(0.45*duration); ani.values.push(0.4); 
+			ani.timekey.push(0.5*duration); ani.values.push(1);
+			ani.timekey.push(0.55*duration); ani.values.push(0.4);
+			ani.timekey.push(duration); ani.values.push(0);
+			this._animatastack.push(ani);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].easeInHighlightEaseOut(duration);
+		}
+	}
 	function easeIn(duration)
 	{
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
+			this.autodeath = false;
 			this._opacitypointer = this._animatastack.length;
 			//
 			var ani = new animata();
@@ -204,6 +318,7 @@ function indisObject(mask, img, live)
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
+			this.autodeath = true;
 			this._opacitypointer = this._animatastack.length;
 			//
 			var ani = new animata();
@@ -230,8 +345,8 @@ function indisObject(mask, img, live)
 			ani.live = true;
 			ani.time = 0;
 			ani.timekey.push(0);  ani.values.push(0);
-			ani.timekey.push(0.2*duration);  ani.values.push(1.0);
-			ani.timekey.push(0.8*duration);  ani.values.push(1.0);
+			ani.timekey.push(0.45*duration);  ani.values.push(1.0);
+			ani.timekey.push(0.55*duration);  ani.values.push(1.0);
 			ani.timekey.push(1.0*duration);  ani.values.push(0);
 			this._animatastack.push(ani);
 		}
@@ -256,6 +371,7 @@ function indisObject(mask, img, live)
 		{
 			this.live = false;
 		}
+		//
 		for (var i = 0; i < this._animateIndependChildStack.length; i++)
 		{
 			this._animateIndependChildStack[i].animate();
@@ -263,13 +379,6 @@ function indisObject(mask, img, live)
 	}
 	function renderFrameInImageRect(context)
 	{
-		if (this._opacitypointer != -1)
-		{
-			if (this._animatastack[this._opacitypointer].live == true)
-			{
-				context.globalAlpha = this._animatastack[this._opacitypointer].value;
-			}
-		}
 		if (this._imagerecttranspointer != -1)
 		{
 			for (var i = 0; i < 4; i++)
@@ -280,10 +389,27 @@ function indisObject(mask, img, live)
 				}
 			}
 		}
+
+		if (this._opacitypointer != -1)
+		{
+			if (this._animatastack[this._opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[this._opacitypointer].value;
+			}
+		}
+		context.save();
+		context.globalAlpha = this._localAlpha;
 		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
+		context.restore();
+
+		//this._staticChildStack[0].sketchObjectRespondingRegion(this._rect, context);
+
 		for (var i = 0; i < this._animateIndependChildStack.length; i++)
 		{
-			this._animateIndependChildStack[i].renderFrameInImageRect(context);
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderFrameInImageRect(context);
+			}
 		}
 	}
 
@@ -293,7 +419,7 @@ function indisObject(mask, img, live)
 		{
 			if (this._animatastack[this._opacitypointer].live == true)
 			{
-				context.globalAlpha = this._animatastack[this._opacitypointer].value;
+				this._localAlpha = this._animatastack[this._opacitypointer].value;
 			}
 		}
 
@@ -307,9 +433,9 @@ function indisObject(mask, img, live)
 		context.lineTo(this._mask[0].x, this._mask[0].y);
 		context.closePath();
 		context.save();
+		context.globalAlpha = this._localAlpha;
 		context.clip();
-		
-		context.drawImage(this._image, 0, 0);
+		context.drawImage(this._image, 0, 0, context.canvas.width, context.canvas.height);
 		context.restore();
 	}
 	//
@@ -342,7 +468,15 @@ function indisObject(mask, img, live)
 	}
 	function testObjectClickReturnAction(pt)
 	{
-		if (!isPointInPoly(this._mask, pt))
+		var mask = [];
+		var fx = this._rect[2]/this.imageCSSwidth;
+		var fy = this._rect[3]/this.imageCSSheight;
+
+		for (var i = 0; i < this._mask.length; i++)
+		{
+			mask.push(new jsPoint(this._rect[0] + fx*this._mask[i].x, this._rect[1] + fy*this._mask[i].y)); 
+		}
+		if (!isPointInPoly(mask, pt))
 		{
 			return "NULL";
 		}

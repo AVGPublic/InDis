@@ -1,11 +1,19 @@
 <!doctype html>
 <html>
 	<style>
+		#host_div
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			width: 1280px;
+			height: 720px;
+		}
 		video
 		{
 			position:absolute;
 			left: 0px;
-			top; 0px;
+			top: 0px;
 			z-index: 1;
 		}
 		#canvas_time
@@ -25,6 +33,15 @@
 			z-index: 12;
 			alpha: 0.3;
 			mix-blend-mode: overlay;
+		}
+		#canvas_subtitle
+		{
+			position:absolute;
+			left: 0px;
+			top: 0px;
+			z-index: 10;
+			opacity: 1;
+			mix-blend-mode: normal;
 		}
 		#canvas_light
 		{
@@ -51,13 +68,14 @@
 	<head>
 		<title>AVGdemo</title>
 		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<script src="/js/jquery-1.8.3.min.js"></script>
 		<script src="/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="/js/jquery-1.8.3.min.js"></script>
 		<script src = "/js/animateobject.js"></script>
 	</head>
 	<body>
 		<ul id="messages"></ul>
+		<div id = "host_div">
 		<video id="video" src="/video/youfromstar1.mp4" controls></video>
 		<canvas id="canvas_time" width="1280px" height="690px"></canvas>
 		<canvas id="canvas_block" onclick="onCanvasClick(event)" width="1280px" height="720px"></canvas>
@@ -66,7 +84,16 @@
 		</button>
 		<img id="imgLight" class="img" src="/image/SC-Jacket.png"/>
 		<canvas id="canvas_light" > </canvas>
+		<!-- -->
+		<canvas id="canvas_subtitle" > </canvas>
+		<img id="img_layer2_id0" src = "image/zm-3.png" hidden = "true" />
+		<img id="img_layer2_id1" src = "image/zm-1.png" hidden = "true" />
+		<img id="img_layer2_id2" src = "image/chanel.png" hidden = "true" />
+		<img id="img_layer2_id3" src = "image/chanel-logo.png" hidden = "true" />
+		<div>
+		<!-- -->
 		<script>
+			var host_div = document.getElementById('host_div');
 			var video=document.getElementById('video');
 			var canvas_time=document.getElementById('canvas_time');
 			var ctx_time=canvas_time.getContext('2d');
@@ -75,6 +102,8 @@
 			var imgLight=document.getElementById('imgLight');
 			var canvas_light=document.getElementById('canvas_light');
 			var ctx_light = canvas_light.getContext('2d');
+			var canvas_subtitle = document.getElementById('canvas_subtitle');
+			var ctx_subtitle = canvas_subtitle.getContext('2d');
 			var socket = io();			
 			
 			var sectionObj = new Object();
@@ -93,10 +122,23 @@
 			var imgAnimationSetFlag = 0;
 			var imgSetFlag = 1;
 			
+			//
+			var testtime = 13;
+			var subtitleBegin = false;
+			var subtitleOn = false;
+			var subtitleEnd = false;
+			var subtitleOff = false;
+			var subtileStartime = 0;
+			
+			var subtitleObject;
+			var img_subtile;
+			canvas_subtitle.width = 1280;
+			canvas_subtitle.height = 690;
+			//
 			var objectLight;
 			canvas_light.width = 1280;
 			canvas_light.height = 690;
-			
+			//
 			function getLocation()
 			{
 				socket.emit('get location');
@@ -135,7 +177,12 @@
 				{
 					objectLight.renderFrameInImageRect(ctx_light);
 				}
-				ctx_light.strokeRect(200, 200, 400, 400);
+				ctx_subtitle.clearRect(0, 0, canvas_subtitle.width, canvas_subtitle.height);
+				subtitleObject.animate();
+				if(subtitleObject.live)
+				{
+					subtitleObject.renderFrameInImageRect(ctx_subtitle);
+				}
 			}
 			
 			$(document).ready(function()
@@ -156,6 +203,13 @@
 				interactive_poly.push(new jsPoint(0, 332));
 			
 				objectLight = new indisObject(interactive_poly, imgLight, false);
+				//
+				img_subtile = document.getElementById("img_layer2_id0");	
+				subtitleObject = new indisObject(null, img_subtile, false);
+				var img_channel = document.getElementById("img_layer2_id2");
+				var channelObject = new indisObject(null, img_channel, false);
+				subtitleObject.appendChildObject(channelObject, "independentChild");
+				//
 				animate();
 			});
 			
@@ -189,8 +243,44 @@
 					{
 						imgSetFlag = 1;
 						imgAnimationSetFlag = 0;
-					}
+					}	
 				}
+				//
+				if (subtitleOn && time >= subtileStartime + 10)
+				{
+					subtitleEnd = true;
+				}
+				if (subtitleEnd && !subtitleOff)
+				{
+					subtitleObject.easeOut(50);
+					subtitleEnd = false;
+					subtitleOff = true;
+					subtitleBegin = false;
+					subtitleOn = false;
+				}
+				
+				if (time >= testtime - 10 && time <= testtime + 10 && !subtitleOn)
+				{
+					subtileStartime = time;
+					subtitleBegin = true;
+				}
+				if (subtitleBegin)
+				{	
+					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 80);
+					var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
+					subtitleObject.easeIn(80);
+					subtitleObject.transFromRectToRect(anchor1.x - 300, anchor1.y ,  boardSize.width + 300, boardSize.height, 
+													   anchor1.x , anchor1.y,  boardSize.width, boardSize.height, 50);			
+					subtitleObject.setAnimateRootPointer(0);
+					subtitleObject.easeIn(80);
+					subtitleObject.transFromRectToRect(anchor1.x + 50 + 0.18*boardSize.width, anchor1.y + 33 + 0.14*boardSize.height,  0,  0, 
+													   anchor1.x + 50, anchor1.y + 33,  0.36*boardSize.width, 0.28*boardSize.height, 80);
+					subtitleObject.resetAnimateRootPointer();
+					
+					subtitleBegin = false;
+					subtitleOn = true;
+				}
+
 				//
 				var currentSection = judgeTime(time);
 				if(currentSection != 0)

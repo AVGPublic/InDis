@@ -100,7 +100,6 @@ document.addEventListener ('DOMContentLoaded', function () {
 		//
         renderer = new THREE.CanvasRenderer( { antialias: true, devicePixelRatio: 1 } );
         renderer.setSize (window.innerWidth, window.innerHeight);
-		renderer.setClearColorHex(0x000000, 0.0);
         document.getElementById('canvasdiv').appendChild (renderer.domElement);
            
         camera = new THREE.PerspectiveCamera (
@@ -115,7 +114,7 @@ document.addEventListener ('DOMContentLoaded', function () {
             map:te,
             transparent: true,
         });
-		for (var i = 0; i < 200; i++)
+		for (var i = 0; i < 50; i++)
 		{
 			particles[i] = new THREE.Sprite( material);
 			scene.add(particles[i]);
@@ -124,6 +123,23 @@ document.addEventListener ('DOMContentLoaded', function () {
 			particles[i].scale.x = particles[i].scale.y = 0.05;
 			
 			particles[i].material.opacity = 0.0;
+			
+			var ranx = Math.random()*200 - 100;
+			if (ranx > 0)
+			{
+				var rany = ranx + Math.random()*600;
+			}
+			else
+			{
+				var rany = -ranx + Math.random()*600;
+			}
+			tween1[i] = new TWEEN.Tween( particles[i].position )
+			.delay( i*7.5 )
+			.to( { x: ranx, y: rany, z: Math.random() * 100 - 50 }, 1500);
+
+			tween2[i] = new TWEEN.Tween( particles[i].scale )
+				.delay( i*7.5 )
+				.to( { x: 0, y: 0, z: 0}, 1500 );				
 		}
 		//
         var s = 'V-MEDIA';
@@ -308,7 +324,7 @@ document.addEventListener ('DOMContentLoaded', function () {
         }
         if (start_particle == true && particle_started == false)
         {
-			for (var i = 0; i < 200; i++)
+			for (var i = 0; i < 50; i++)
 			{
 				particles[i].material.opacity = 0.4;
 				
@@ -317,24 +333,8 @@ document.addEventListener ('DOMContentLoaded', function () {
 				.to( {}, 1500 )
 				.start();
       
-				var ranx = Math.random()*200 - 100;
-				if (ranx > 0)
-				{
-					var rany = ranx + Math.random()*600;
-				}
-				else
-				{
-					var rany = -ranx + Math.random()*600;
-				}
-				tween1[i] = new TWEEN.Tween( particles[i].position )
-				.delay( i*7.5 )
-				.to( { x: ranx, y: rany, z: Math.random() * 100 - 50 }, 1500 )
-				.start();
-				
-				tween2[i] = new TWEEN.Tween( particles[i].scale )
-				.delay( i*7.5 )
-				.to( { x: 0, y: 0, z: 0}, 1500 )
-				.start();
+				tween1[i].start();
+				tween2[i].start();
 			}
 			/*video_rgb.play();
 			video_alpha.play();

@@ -33,6 +33,10 @@ app.get('/interactive_display', function(req, res){
   res.sendfile('public/static/interactive_display.html');
 });
 
+app.get('/sportVG_video', function(req, res){
+  res.sendfile('public/static/sportVG_video.html');
+});
+
 io.on('connection', function(socket){
   socket.on('get location', function()
   {
@@ -48,7 +52,7 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(3000, function(){
+http.listen(80, function(){
   console.log('Express server listening on port ' + app.get('port'));
   console.log('C/C++ addons.hello() =', addons.hello());
 

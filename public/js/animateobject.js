@@ -515,7 +515,15 @@ function indisObject(mask, img, live)
 	}
 	function testObjectClick(pt)
 	{
-		return(isPointInPoly(this._mask, pt));
+		var mask = [];
+		var fx = this._rect[2]/this.imageCSSwidth;
+		var fy = this._rect[3]/this.imageCSSheight;
+
+		for (var i = 0; i < this._mask.length; i++)
+		{
+			mask.push(new jsPoint(this._rect[0] + fx*this._mask[i].x, this._rect[1] + fy*this._mask[i].y)); 
+		}
+		return(isPointInPoly(mask, pt));
 	}
 }
 //

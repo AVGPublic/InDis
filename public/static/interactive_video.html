@@ -45,49 +45,49 @@
 		}
 	</style>
 	<head>
-		<title>AVGdemo</title>
+		<title>Interactive Video</title>
 		<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<script src="/js/jquery-1.8.3.min.js"></script>
 		<script src="/bootstrap/js/bootstrap.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src = "/js/animateobject.js"></script>
+		<script src="/js/animateobject.js"></script>
 	</head>
 	<body>
-		<ul id="messages"></ul>
-		<div id = "host_div">
+		<div id="host_div">
 			<video id="video" src="/video/youfromstar1.mp4" controls></video>
 			<canvas id="canvas_time" width="1280px" height="690px"></canvas>
-			<canvas id="canvas_light" onclick="onCanvasLightClick(event)"> </canvas>
-				<img id="imgLight" class="img" src="/image/SC-Jacket.png"/>
+			<canvas id="canvas_light"> </canvas>
+				<img id="imgLight" src="/image/SC-Jacket.png" hidden="true"/>
 			<canvas id="canvas_subtitle" onclick="onCanvasSubtitleClick(event)"> </canvas>
-				<img id="img_layer2_id0" src = "image/zm-3.png" hidden = "true" />
-				<img id="img_layer2_id1" src = "image/zm-1.png" hidden = "true" />
-				<img id="img_layer2_id2" src = "image/chanel.png" hidden = "true" />
-				<img id="img_layer2_id3" src = "image/chanel-logo.png" hidden = "true" />
-		<div>
+				<img id="img_layer2_id0" src = "image/zm-3.png" hidden="true"/>
+				<img id="img_layer2_id1" src = "image/zm-1.png" hidden="true"/>
+				<img id="img_layer2_id2" src = "image/chanel.png" hidden="true"/>
+				<img id="img_layer2_id3" src = "image/chanel-logo.png" hidden="true"/>
+		</div>
 		<script>
+			//
 			var host_div = document.getElementById('host_div');
 			var video=document.getElementById('video');
-			
+			//
 			var canvas_time=document.getElementById('canvas_time');
 			var ctx_time=canvas_time.getContext('2d');
-			
+			//
 			var imgLight=document.getElementById('imgLight');
 			var canvas_light=document.getElementById('canvas_light');
 			var ctx_light = canvas_light.getContext('2d');
 			canvas_light.width = 1280;
 			canvas_light.height = 690;
-			
+			//
 			var img_subtile = document.getElementById("img_layer2_id0");;
 			var canvas_subtitle = document.getElementById('canvas_subtitle');
 			var ctx_subtitle = canvas_subtitle.getContext('2d');
 			canvas_subtitle.width = 1280;
 			canvas_subtitle.height = 690;
-			
+			//
 			var socket = io();			
-			
+			//
 			var sectionObj = new Object();
-			
+			//
 			var startTime0 = 912;
 			var endTime0 = 912.4;
 			var imgAnimationSetFlag0 = 0;
@@ -107,14 +107,15 @@
 			var subtitleEndTime = 928;
 			var subtitleStartFlag = 0;
 			var subtitleEndFlag = 1;
-			
+			//
 			var subtitleObject;
 			var objectLight;
-			
+			//
 			function getLocation()
 			{
 				socket.emit('get location');
 			}
+			//
 			function judgeTime(t)
 			{
 				var timePerFrame = 1 / sectionObj.fps;
@@ -127,68 +128,44 @@
 				}
 				return 0;
 			}
-			function onCanvasClick(event) 
+			//
+			function onCanvasSubtitleClick(event) 
 			{
-				var blockData = ctx_block.getImageData(0, 0, canvas_block.width, canvas_block.height);
 				var x = event.clientX;
 				var y = event.clientY;
-				if(blockData.data[(y * canvas_block.width + x) * 4] == 255 && blockData.data[(y * canvas_block.width + x) * 4 + 1] == 255 && blockData.data[(y * canvas_block.width + x) * 4 + 2] == 255)
+				var pt = new jsPoint(x, y);
+				if(subtitleObject.testObjectClick(pt))
 				{
 					video.pause();
 					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.18.W7hLca&id=36806788882&ns=1#detail");
 					//window.open("detail");
 				}
 			}
-			
+			//
 			function animate () 
 			{
+				//
 				requestAnimationFrame (animate);
+				//
 				objectLight.animate();
-				
+				subtitleObject.animate();
+				//
 				drawFrame();
-				
+				//
 				ctx_light.clearRect(0, 0, canvas_light.width, canvas_light.height);
 				if (objectLight.live)
 				{
 					//objectLight.renderFrameInImageRect(ctx_light);
 					objectLight.renderFrameInMaskRect(ctx_light);
 				}
+				//
 				ctx_subtitle.clearRect(0, 0, canvas_subtitle.width, canvas_subtitle.height);
-				subtitleObject.animate();
 				if(subtitleObject.live)
 				{
 					subtitleObject.renderFrameInImageRect(ctx_subtitle);
 				}
 			}
-			
-			$(document).ready(function()
-			{
-				getLocation();
-				socket.on('send location', function(msg)
-				{
-					sectionObj = msg;
-				});
-			
-				objectLight = new indisObject(null, imgLight, false);	
-				subtitleObject = new indisObject(null, img_subtile, false);
-				
-				var img_underneath = document.getElementById("img_layer2_id1");
-				var underneathObject = new indisObject(null, img_underneath, false);
-				subtitleObject.appendChildObject(underneathObject, "independentChild");
-				
-				var img_channel = document.getElementById("img_layer2_id2");
-				var channelObject = new indisObject(null, img_channel, false);
-				subtitleObject.appendChildObject(channelObject, "independentChild");
-				
-				var img_channel_logo = document.getElementById("img_layer2_id3");
-				var channelObject = new indisObject(null, img_channel_logo, false);
-				subtitleObject.appendChildObject(channelObject, "independentChild");
-				
-				animate();
-			});
-			
-			var time = video.currentTime;
-			
+			//
 			function drawTime()
 			{
 				ctx_time.fillStyle = "blue";
@@ -196,7 +173,8 @@
 				ctx_time.clearRect(0, 0, canvas_time.width, canvas_time.height);
 				ctx_time.fillText(time, 600, 100);
 			}
-			
+			//
+			var time = video.currentTime;
 			function drawFrame()
 			{
 				time = video.currentTime;
@@ -304,25 +282,51 @@
 					if ((time > subtitleEndTime || time < subtitleStartTime) && subtitleEndFlag == 0)
 					{
 						console.log("out");
+						var easeOutTime = 30;
 						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 50);
 						var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
-						subtitleObject.easeOut(80);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 30, boardSize.height, 50);											   
+						subtitleObject.easeOut(easeOutTime);
+						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 30, boardSize.height, easeOutTime);											   
 						subtitleObject.setAnimateRootPointer(1);
-						subtitleObject.easeOut(80);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 30, boardSize.height, 50);
+						subtitleObject.easeOut(0);
 						subtitleObject.setAnimateRootPointer(0);
-						subtitleObject.easeOut(80);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 30, boardSize.height, 50);	
+						subtitleObject.easeOut(easeOutTime);
+						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 0, boardSize.height, easeOutTime);	
 						subtitleObject.setAnimateRootPointer(2);
-						subtitleObject.easeOut(80);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+150, anchor1.y, 30, boardSize.height, 50);	
+						subtitleObject.easeOut(easeOutTime*10);
+						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);	
 						subtitleObject.resetAnimateRootPointer();
 						subtitleEndFlag = 1;
 						subtitleStartFlag = 0;
 					}	
-				}	
-			}	
+				}
+			}
+			$(document).ready(function()
+			{
+				//
+				getLocation();
+				socket.on('send location', function(msg)
+				{
+					sectionObj = msg;
+				});
+				//
+				objectLight = new indisObject(null, imgLight, false);	
+				subtitleObject = new indisObject(null, img_subtile, false);
+				//
+				var img_underneath = document.getElementById("img_layer2_id1");
+				var underneathObject = new indisObject(null, img_underneath, false);
+				subtitleObject.appendChildObject(underneathObject, "independentChild");
+				//
+				var img_channel = document.getElementById("img_layer2_id2");
+				var channelObject = new indisObject(null, img_channel, false);
+				subtitleObject.appendChildObject(channelObject, "independentChild");
+				//
+				var img_channel_logo = document.getElementById("img_layer2_id3");
+				var channelObject = new indisObject(null, img_channel_logo, false);
+				subtitleObject.appendChildObject(channelObject, "independentChild");
+				//
+				animate();
+			});	
 		</script>
 	</body>
 </html>

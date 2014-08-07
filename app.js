@@ -33,6 +33,10 @@ app.get('/interactive_display', function(req, res){
   res.sendfile('public/static/interactive_display.html');
 });
 
+app.get('/sportVG_video', function(req, res){
+  res.sendfile('public/static/sportVG_video.html');
+});
+
 io.on('connection', function(socket){
   socket.on('get location', function()
   {

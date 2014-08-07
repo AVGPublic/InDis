@@ -159,7 +159,13 @@ function indisObject(mask, img, live)
 	this.setTopleft = setTopleft;
 	this.testObjectClick = testObjectClick;
 	this.testObjectClickReturnAction = testObjectClickReturnAction;
+	this.updateMask = updateMask;
 	
+	function updateMask(mask)
+	{
+		//this._mask.clear();
+		this._mask = mask;
+	}
 	function resetAnimateRootPointer()
 	{
 		this._animaterootpointer = -1;
@@ -415,6 +421,17 @@ function indisObject(mask, img, live)
 
 	function renderFrameInMaskRect(context)
 	{
+		if (this._imagerecttranspointer != -1)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[this._imagerecttranspointer + i].live == true)
+				{	
+					this._rect[i] = this._animatastack[this._imagerecttranspointer + i].value;
+				}
+			}
+		}
+
 		if (this._opacitypointer != -1)
 		{
 			if (this._animatastack[this._opacitypointer].live == true)
@@ -435,7 +452,7 @@ function indisObject(mask, img, live)
 		context.save();
 		context.globalAlpha = this._localAlpha;
 		context.clip();
-		context.drawImage(this._image, 0, 0, context.canvas.width, context.canvas.height);
+		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
 		context.restore();
 	}
 	//

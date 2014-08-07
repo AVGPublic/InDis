@@ -20,8 +20,6 @@
 			left: 0px;
 			top: 0px;
 			z-index: 3;
-			
-			//mix-blend-mode: overlay;
 		}
 		#img_layer1
 		{
@@ -45,11 +43,59 @@
 			opacity: 1.0;
 			z-index: -1;
 		}
-		
+		#img_chroma_bg
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 0.0;
+			z-index: 1;
+		}
+		#img_chroma_fg
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 0.0;
+			z-index: 1;
+		}
+		#img_chroma_bgvg
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 0.0;
+			z-index: 1;
+		}
+		#img_chroma_comp
+		{
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			opacity: 0.0;
+			z-index: 1;
+		}
+		#img_chroma_title
+		{
+			position: absolute;
+			left: 30px;
+			top: 650px;
+			z-index: 3;
+		}
+		#return_button
+		{
+			position: absolute;
+			left: 5px;
+			top: 665px;
+			display: none;
+			z-index: 5;
+		}
 	</style>
 	<head>
 		<title>AVGdemo</title>
+		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="js/animateobject.js"></script>
 	</head>
@@ -64,12 +110,24 @@
 		<img id = "img_bg_blur" src = "image/VG_BG_blur.png"/>
 		<img id= "img_layer1" src = "image/VG_corners.png" hidden = "true"/>
 		<img id = "img_light" src = "image/light1.png", hidden = "true"/>
+		<img id = "img_chroma_title" src = "image/chroma_title.png" hidden = "true"/>
+		<img id = "img_chroma_bg" src = "image/VG_Chroma_BG.png" hidden = "true"/>
+		<img id = "img_chroma_fg" src = "image/VG_Chroma_FG.png" hidden = "true"/>
+		<img id = "img_chroma_bgvg" src = "image/VG_Chroma_BGVG.png" hidden = "true"/>
+		<img id = "img_chroma_comp" src = "image/VG_Chroma_Comp.png" hidden = "true"/>
+		
+		<button id="return_button" type="button" class="btn btn-default btn-lg" onclick="return_button_click()">
+				<span class="glyphicon glyphicon-arrow-left" ></span>
+		</button>
+		
 		<canvas id="canvas_fg1" > </canvas>
 		<canvas id="canvas_fg2" > </canvas>
 		</div>
-		
+
 		<script>
 			var globalstate;
+			var globalstate_id;
+			var globalstate_id_count = 0;
 			//
 			var objects_layer1 = [];
 			var objects_layer2 = [];
@@ -200,7 +258,7 @@
 					}
 					globalstate = "scene0";
 					animate();
-				//
+					//
 				});
 			});
 			
@@ -260,6 +318,17 @@
 			{
 				breathstate = false;
 			}
+			function return_button_click()
+			{
+				$('#img_chroma_bg').fadeOut(300);
+				$('#img_chroma_fg').fadeOut(300);
+				$('#img_chroma_bgvg').fadeOut(300);
+				$('#img_chroma_comp').fadeOut(300);
+				$('#img_chroma_title').fadeOut(300);
+				$('#return_button').fadeOut(300);
+				$('#return_button').hide(1);
+				globalstate = "scene0";
+			}
 			function onClick(event) 
 			{
 				var x = event.clientX + window.pageXOffset;
@@ -296,21 +365,29 @@
 
 						if(objects_layer2[i].live)
 						{
-							if (!objects_layer2[i].testObjectClick(pt))
+							if (objects_layer2[i].testObjectClick(pt))
 							{
-								action = "close";
+								if (i == 1)
+								{
+									$('#img_chroma_bg').fadeTo(200, 1.0);
+									$('#img_chroma_title').fadeIn(300);
+									$('#return_button').fadeIn(300);
+									globalstate_id = 1;
+									globalstate_id_count = 0;
+									globalstate = "scene2";
+								}
+								else
+								{
+									globalstate = "scene0";
+								}
 							}
 							else
 							{
-								action = objects_layer2[i].testObjectClickReturnAction(pt);
-								}
-							if (action == "close")
-							{
 								globalstate = "scene0";
-								objects_layer2[i].easeOut(10);
-								objects_layer2[i].transFromRectToRect(anchor1.x, anchor1.y, 669, 362, anchor1.x, bg_image_size.height/2.0, 669, 0, 10);
-								$('#img_bg_blur').fadeTo(200, 0.0);
 							}
+							objects_layer2[i].easeOut(10);
+							objects_layer2[i].transFromRectToRect(anchor1.x, anchor1.y, 669, 362, anchor1.x, bg_image_size.height/2.0, 669, 0, 10);
+							$('#img_bg_blur').fadeTo(200, 0.0);
 						}
 					}
 				}
@@ -357,6 +434,35 @@
 							var fh = 669*9/16;
 							objects_layer2[i].transFromRectToRect(0.5*bg_image_size.width, 0.5*bg_image_size.height - 0.5*fh, 0, fh, anchor1.x, 0.5*bg_image_size.height - 0.5*fh, 669, fh, 13);
 							objects_layer2[i].resetAnimateRootPointer();
+						}
+					}
+				}
+				else if (globalstate == "scene2")
+				{
+					if(objects_layer1[4].testObjectClick(pt))
+					{
+
+						globalstate_id_count += 1;
+						globalstate_id_count = globalstate_id_count%4;				
+						if (globalstate_id_count == 0)
+						{
+							$('#img_chroma_comp').fadeTo(500, 0.0);
+							$('#img_chroma_bg').fadeTo(500, 1.0);
+						}
+						else if (globalstate_id_count == 1)
+						{
+							$('#img_chroma_bg').fadeTo(500, 0.0);
+							$('#img_chroma_fg').fadeTo(500, 1.0);
+						}
+						else if (globalstate_id_count == 2)
+						{
+							$('#img_chroma_fg').fadeTo(500, 0.0);
+							$('#img_chroma_bgvg').fadeTo(500, 1.0);
+						}
+						else if (globalstate_id_count == 3)
+						{
+							$('#img_chroma_bgvg').fadeTo(500, 0.0);
+							$('#img_chroma_comp').fadeTo(500, 1.0);
 						}
 					}
 				}

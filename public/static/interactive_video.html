@@ -58,7 +58,7 @@
 		<div id="host_div">
 			<video id="video" src="/video/Clip.mp4" controls></video>
 			<canvas id="canvas_time" width="1280px" height="690px"></canvas>
-			<canvas id="canvas_light"> </canvas>
+			<canvas id="canvas_light" onclick="onCanvasLightClick(event)"> </canvas>
 				<img id="imgLight" src="/image/SC-Jacket.png" hidden="true"/>
 			<canvas id="canvas_subtitle" onclick="onCanvasSubtitleClick(event)"> </canvas>
 				<img id="img_layer2_id0" src = "image/zm-3.png" hidden="true"/>
@@ -149,6 +149,7 @@
 			var subtitleObject0;
 			var subtitleObject1;
 			var objectLight;
+			var subtitleFly = [50, 70, 30, 20, 35, 45, 55, 60, 80, 30, 10];
 			//
 			function getLocation()
 			{
@@ -177,13 +178,22 @@
 				{
 					video.pause();
 					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.18.W7hLca&id=36806788882&ns=1#detail");
-					//window.open("detail");
 				}
 				else if(subtitleObject1.testObjectClick(pt))
 				{
 					video.pause();
 					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.399.3YKwpj&id=37349362342&ns=1#detail");
-					//window.open("detail");
+				}
+			}
+			function onCanvasLightClick(event) 
+			{
+				var x = event.clientX;
+				var y = event.clientY;
+				var pt = new jsPoint(x, y);
+				if(objectLight.testStaticMaskClick(pt))
+				{
+					video.pause();
+					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.18.W7hLca&id=36806788882&ns=1#detail");
 				}
 			}
 			//
@@ -304,55 +314,43 @@
 				if (time <= subtitleEndTime0 && time >= subtitleStartTime0 && subtitleStartFlag0 == 0)
 				{
 					console.log("in");
-					var easeInTime = 20;
+					var easeInTime = 50;
 					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject0.imageCSSwidth - 10, host_div.clientHeight - subtitleObject0.imageCSSheight - 50);
 					var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
-					var kk = 3;
+					var kk = 0;
 					
 					subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
-					subtitleObject0.easeIn(500);
+					subtitleObject0.easeIn(200);
 					
-					subtitleObject0.setAnimateRootPointer(2);
+					subtitleObject0.setAnimateRootPointer(13);
 					subtitleObject0.easeIn(20);
 					subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
 					
-					for(var i = 3; i < 14; i++)
+					var setIntervalID = setInterval(function()
 					{
-						subtitleObject0.setAnimateRootPointer(i);
+						subtitleObject0.setAnimateRootPointer(kk);
 						subtitleObject0.easeIn(50);
-						subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 20);
-					}
-					/*setTimeout(function()
+						subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, subtitleFly[kk]);
+						kk++;
+						if(kk == 11)
 						{
-							subtitleObject0.setAnimateRootPointer(3);
-							subtitleObject0.easeIn(50);
-							subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 20);
-						}, 50);*/
-					/*var setIntervalID = setInterval(function()
-						{
-							subtitleObject0.setAnimateRootPointer(kk);
-							subtitleObject0.easeIn(20);
-							subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 50);
-							kk++;
-							if(kk == 14)
-							{
-								console.log("stop");
-								clearInterval(setIntervalID);
-							}
-						}, 50);*/
-					setTimeout(function()
-						{
-							subtitleObject0.setAnimateRootPointer(0);
-							subtitleObject0.easeIn(50);
-							subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+							console.log("stop");
+							clearInterval(setIntervalID);
 							setTimeout(function()
+							{
+								subtitleObject0.setAnimateRootPointer(11);
+								subtitleObject0.easeIn(50);
+								subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+								setTimeout(function()
 								{
-									subtitleObject0.setAnimateRootPointer(1);
+									subtitleObject0.setAnimateRootPointer(12);
 									subtitleObject0.easeIn(50);
 									subtitleObject0.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
 									subtitleObject0.resetAnimateRootPointer();
-								}, 400);
-						}, 200);								
+								}, 600);
+							}, 400);
+						}
+					}, 50);
 					subtitleStartFlag0 = 1;
 					subtitleEndFlag0 = 0;
 				}
@@ -368,14 +366,37 @@
 						
 						subtitleObject0.easeOut(50);
 						
+						subtitleObject0.setAnimateRootPointer(0);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(1);
+						subtitleObject0.easeOut(50);
 						subtitleObject0.setAnimateRootPointer(2);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(3);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(4);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(5);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(6);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(7);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(8);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(9);
+						subtitleObject0.easeOut(50);
+						subtitleObject0.setAnimateRootPointer(10);
+						subtitleObject0.easeOut(50);
+						
+						subtitleObject0.setAnimateRootPointer(13);
 						subtitleObject0.easeOut(easeOutTime * 5);
 						subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
 						
-						subtitleObject0.setAnimateRootPointer(1);
+						subtitleObject0.setAnimateRootPointer(12);
 						subtitleObject0.easeOut(0);
 						
-						subtitleObject0.setAnimateRootPointer(0);
+						subtitleObject0.setAnimateRootPointer(11);
 						subtitleObject0.easeOut(easeOutTime);
 						subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
 							
@@ -388,35 +409,43 @@
 				if (time <= subtitleEndTime1 && time >= subtitleStartTime1 && subtitleStartFlag1 == 0)
 				{
 					console.log("in");
-					var easeInTime = 20;
+					var easeInTime = 50;
 					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject1.imageCSSwidth - 10, host_div.clientHeight - subtitleObject1.imageCSSheight - 50);
 					var boardSize = new jsSize(subtitleObject1.imageCSSwidth, subtitleObject1.imageCSSheight);
+					var kk = 0;
 					
 					subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
-					subtitleObject1.easeIn(500);
+					subtitleObject1.easeIn(200);
 					
-					subtitleObject1.setAnimateRootPointer(2);
+					subtitleObject1.setAnimateRootPointer(13);
 					subtitleObject1.easeIn(20);
-					subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);											   
-					/*for(var k = 2; k < 14; k++)
+					subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+					
+					var setIntervalID = setInterval(function()
 					{
-						subtitleObject1.setAnimateRootPointer(k);
-						subtitleObject1.easeIn(0);
-						subtitleObject1.transFromRectToRect(anchor1.x-500, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], anchor1.x - k*20, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], easeInTime);
-					}*/
-					setTimeout(function()
+						subtitleObject1.setAnimateRootPointer(kk);
+						subtitleObject1.easeIn(50);
+						subtitleObject1.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, subtitleFly[kk]);
+						kk++;
+						if(kk == 11)
 						{
-							subtitleObject1.setAnimateRootPointer(0);
-							subtitleObject1.easeIn(50);
-							subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+							console.log("stop");
+							clearInterval(setIntervalID);
 							setTimeout(function()
+							{
+								subtitleObject1.setAnimateRootPointer(11);
+								subtitleObject1.easeIn(50);
+								subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+								setTimeout(function()
 								{
-									subtitleObject1.setAnimateRootPointer(1);
+									subtitleObject1.setAnimateRootPointer(12);
 									subtitleObject1.easeIn(50);
 									subtitleObject1.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
 									subtitleObject1.resetAnimateRootPointer();
-								}, 400);
-						}, 200);								
+								}, 600);
+							}, 400);
+						}
+					}, 50);								
 					subtitleStartFlag1 = 1;
 					subtitleEndFlag1 = 0;
 				}
@@ -425,20 +454,44 @@
 					if ((time > subtitleEndTime1 || time < subtitleStartTime1) && subtitleEndFlag1 == 0)
 					{
 						console.log("out");
+						
 						var easeOutTime = 20;
 						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject1.imageCSSwidth - 10, host_div.clientHeight - subtitleObject1.imageCSSheight - 50);
 						var boardSize = new jsSize(subtitleObject1.imageCSSwidth, subtitleObject1.imageCSSheight);
 						
-						subtitleObject1.easeOut(0);
+						subtitleObject1.easeOut(50);
 						
+						subtitleObject1.setAnimateRootPointer(0);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(1);
+						subtitleObject1.easeOut(50);
 						subtitleObject1.setAnimateRootPointer(2);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(3);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(4);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(5);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(6);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(7);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(8);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(9);
+						subtitleObject1.easeOut(50);
+						subtitleObject1.setAnimateRootPointer(10);
+						subtitleObject1.easeOut(50);
+						
+						subtitleObject1.setAnimateRootPointer(13);
 						subtitleObject1.easeOut(easeOutTime * 5);
 						subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
 						
-						subtitleObject1.setAnimateRootPointer(1);
+						subtitleObject1.setAnimateRootPointer(12);
 						subtitleObject1.easeOut(0);
 						
-						subtitleObject1.setAnimateRootPointer(0);
+						subtitleObject1.setAnimateRootPointer(11);
 						subtitleObject1.easeOut(easeOutTime);
 						subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
 							
@@ -460,39 +513,43 @@
 				//
 				objectLight = new indisObject(null, imgLight, false);
 				//
-				subtitleObject0 = new indisObject(null, img_subtile, false);				
-				
-				var underneathObject = new indisObject(null, img_underneath, false);		// 0
-				subtitleObject0.appendChildObject(underneathObject, "independentChild");
-
-				var channelObject = new indisObject(null, img_channel, false);				// 1
-				subtitleObject0.appendChildObject(channelObject, "independentChild");
-				
-				var channelObject = new indisObject(null, img_channel_logo, false);			// 2
-				subtitleObject0.appendChildObject(channelObject, "independentChild");
-				
-				subtitleObject1 = new indisObject(null, img_subtile, false);
-				
-				var underneathObject = new indisObject(null, img_underneath, false);		// 0
-				subtitleObject1.appendChildObject(underneathObject, "independentChild");
-				
-				var armaniLogoObject = new indisObject(null, img_armani, false);			// 1
-				subtitleObject1.appendChildObject(armaniLogoObject, "independentChild");
-
-				var armaniObject = new indisObject(null, img_armani_logo, false);			// 2
-				subtitleObject1.appendChildObject(armaniObject, "independentChild");
-				
 				var baseNumber = 11;
-				for(var k = 0; k < baseNumber; k++)											// 3to13
+				subtitleObject0 = new indisObject(null, img_subtile, false);				
+
+				for(var k = 0; k < baseNumber; k++)											// 0to10
 				{
 					var tempObject = new indisObject(null, img_subtitle_element[k], false);
 					subtitleObject0.appendChildObject(tempObject, "independentChild");
 				}
-				for(var k = 0; k < baseNumber; k++)											// 3to13
+				
+				var underneathObject = new indisObject(null, img_underneath, false);		// 11
+				subtitleObject0.appendChildObject(underneathObject, "independentChild");
+
+				var channelObject = new indisObject(null, img_channel, false);				// 12
+				subtitleObject0.appendChildObject(channelObject, "independentChild");
+				
+				var channelObject = new indisObject(null, img_channel_logo, false);			// 13
+				subtitleObject0.appendChildObject(channelObject, "independentChild");
+				
+				subtitleObject1 = new indisObject(null, img_subtile, false);
+				
+				for(var k = 0; k < baseNumber; k++)											// 0to10
 				{
 					var tempObject = new indisObject(null, img_subtitle_element[k], false);
 					subtitleObject1.appendChildObject(tempObject, "independentChild");
 				}
+				
+				var underneathObject = new indisObject(null, img_underneath, false);		// 11
+				subtitleObject1.appendChildObject(underneathObject, "independentChild");
+				
+				var armaniLogoObject = new indisObject(null, img_armani, false);			// 12
+				subtitleObject1.appendChildObject(armaniLogoObject, "independentChild");
+
+				var armaniObject = new indisObject(null, img_armani_logo, false);			// 13
+				subtitleObject1.appendChildObject(armaniObject, "independentChild");
+				
+				
+				
 				animate();
 			});	
 		</script>

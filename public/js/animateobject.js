@@ -159,6 +159,7 @@ function indisObject(mask, img, live)
 	this.setTopleft = setTopleft;
 	this.testObjectClick = testObjectClick;
 	this.testObjectClickReturnAction = testObjectClickReturnAction;
+	this.testStaticMaskClick = testStaticMaskClick;
 	this.updateMask = updateMask;
 	
 	function updateMask(mask)
@@ -528,6 +529,10 @@ function indisObject(mask, img, live)
 			mask.push(new jsPoint(this._rect[0] + fx*this._mask[i].x, this._rect[1] + fy*this._mask[i].y)); 
 		}
 		return(isPointInPoly(mask, pt));
+	}
+	function testStaticMaskClick(pt)
+	{
+		return(isPointInPoly(this._mask, pt));
 	}
 }
 //

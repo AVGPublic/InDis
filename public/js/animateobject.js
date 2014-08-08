@@ -515,6 +515,10 @@ function indisObject(mask, img, live)
 	}
 	function testObjectClick(pt)
 	{
+		if(this.live == false)
+		{
+			return false;
+		}
 		var mask = [];
 		var fx = this._rect[2]/this.imageCSSwidth;
 		var fy = this._rect[3]/this.imageCSSheight;

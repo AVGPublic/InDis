@@ -14,6 +14,8 @@
 			position:absolute;
 			left: 0px;
 			top: 0px;
+			width: 1280px;
+			height: 720px;
 			z-index: 1;
 		}
 		#canvas_time
@@ -32,7 +34,7 @@
 			top: 0px;
 			z-index: 10;
 			opacity: 1;
-			mix-blend-mode: normal;
+			//mix-blend-mode: normal;
 		}
 		#canvas_light
 		{
@@ -59,13 +61,23 @@
 			<canvas id="canvas_light"> </canvas>
 				<img id="imgLight" src="/image/SC-Jacket.png" hidden="true"/>
 			<canvas id="canvas_subtitle" onclick="onCanvasSubtitleClick(event)"> </canvas>
-				<img id="img_layer2_id4" src = "image/zm-0.png" hidden="true"/>
 				<img id="img_layer2_id0" src = "image/zm-3.png" hidden="true"/>
 				<img id="img_layer2_id1" src = "image/zm-1.png" hidden="true"/>
 				<img id="img_layer2_id2" src = "image/chanel.png" hidden="true"/>
 				<img id="img_layer2_id3" src = "image/chanel-logo.png" hidden="true"/>
 				<img id="img_layer2_id5" src = "image/armani.png" hidden="true"/>
 				<img id="img_layer2_id6" src = "image/armani-logo.png" hidden="true"/>
+				<img id="img_layer2_id70" src = "image/zm001.png" hidden="true"/>
+				<img id="img_layer2_id71" src = "image/zm002.png" hidden="true"/>
+				<img id="img_layer2_id72" src = "image/zm003.png" hidden="true"/>
+				<img id="img_layer2_id73" src = "image/zm004.png" hidden="true"/>
+				<img id="img_layer2_id74" src = "image/zm005.png" hidden="true"/>
+				<img id="img_layer2_id75" src = "image/zm006.png" hidden="true"/>
+				<img id="img_layer2_id76" src = "image/zm007.png" hidden="true"/>
+				<img id="img_layer2_id77" src = "image/zm008.png" hidden="true"/>
+				<img id="img_layer2_id78" src = "image/zm009.png" hidden="true"/>
+				<img id="img_layer2_id79" src = "image/zm010.png" hidden="true"/>
+				<img id="img_layer2_id7a" src = "image/zm011.png" hidden="true"/>
 		</div>
 		<script>
 			//
@@ -87,7 +99,19 @@
 			var img_channel_logo = document.getElementById("img_layer2_id3");
 			var img_armani = document.getElementById("img_layer2_id5");
 			var img_armani_logo = document.getElementById("img_layer2_id6");
-			var img_subtile_base = document.getElementById("img_layer2_id4");
+			var img_subtitle_element = [];
+			img_subtitle_element.push(document.getElementById("img_layer2_id70"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id71"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id72"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id73"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id74"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id75"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id76"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id77"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id78"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id79"));
+			img_subtitle_element.push(document.getElementById("img_layer2_id7a"));
+			//
 			var canvas_subtitle = document.getElementById('canvas_subtitle');
 			var ctx_subtitle = canvas_subtitle.getContext('2d');
 			canvas_subtitle.width = 1280;
@@ -118,15 +142,13 @@
 			var subtitleEndFlag0 = 1;
 			
 			var subtitleStartTime1 = 43;
-			var subtitleEndTime1 = 68;
+			var subtitleEndTime1 = 80;
 			var subtitleStartFlag1 = 0;
 			var subtitleEndFlag1 = 1;
 			//
-			var subtitleObject;
+			var subtitleObject0;
+			var subtitleObject1;
 			var objectLight;
-			//
-			var subtitleWidth = [200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100];
-			var subtitleHeight = [200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100];
 			//
 			function getLocation()
 			{
@@ -151,11 +173,16 @@
 				var x = event.clientX;
 				var y = event.clientY;
 				var pt = new jsPoint(x, y);
-				if(subtitleObject.testObjectClick(pt))
+				if(subtitleObject0.testObjectClick(pt))
 				{
 					video.pause();
 					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.18.W7hLca&id=36806788882&ns=1#detail");
-					//window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.254.1GpcCC&id=37359446252&ns=1#detail");
+					//window.open("detail");
+				}
+				else if(subtitleObject1.testObjectClick(pt))
+				{
+					video.pause();
+					window.open("http://item.taobao.com/item.htm?spm=a230r.1.14.399.3YKwpj&id=37349362342&ns=1#detail");
 					//window.open("detail");
 				}
 			}
@@ -166,21 +193,27 @@
 				requestAnimationFrame (animate);
 				//
 				objectLight.animate();
-				subtitleObject.animate();
+				subtitleObject0.animate();
+				subtitleObject1.animate();
 				//
 				drawFrame();
 				//
 				ctx_light.clearRect(0, 0, canvas_light.width, canvas_light.height);
 				if (objectLight.live)
 				{
-					//objectLight.renderFrameInImageRect(ctx_light);
 					objectLight.renderFrameInMaskRect(ctx_light);
 				}
 				//
 				ctx_subtitle.clearRect(0, 0, canvas_subtitle.width, canvas_subtitle.height);
-				if(subtitleObject.live)
+				if(subtitleObject0.live)
 				{
-					subtitleObject.renderFrameInImageRect(ctx_subtitle);
+					
+					subtitleObject0.renderFrameInImageRect(ctx_subtitle);
+				}
+				//
+				if(subtitleObject1.live)
+				{
+					subtitleObject1.renderFrameInImageRect(ctx_subtitle);
 				}
 			}
 			//
@@ -221,7 +254,7 @@
 				{
 					console.log("0in");
 					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(340, 330, 384, 180, 661, 340, 384, 180, 30);
+					objectLight.transFromRectToRect(340, 330, 384, 180, 661, 340, 384, 180, 25);
 					imgAnimationSetFlag0 = 1;
 					imgSetFlag0 = 0;
 				}
@@ -238,7 +271,7 @@
 				if (time <= endTime1 && time >= startTime1 && imgAnimationSetFlag1 == 0)
 				{
 					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(700, 100, 384, 180, 100, 700, 384, 180, 30);
+					objectLight.transFromRectToRect(700, 100, 384, 180, 100, 700, 384, 180, 25);
 					imgAnimationSetFlag1 = 1;
 					imgSetFlag1 = 0;
 				}
@@ -254,7 +287,7 @@
 				if (time <= endTime2 && time >= startTime2 && imgAnimationSetFlag2 == 0)
 				{
 					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(100, 100, 384, 180, 700, 700, 384, 180, 30);
+					objectLight.transFromRectToRect(100, 100, 384, 180, 700, 700, 384, 180, 25);
 					imgAnimationSetFlag2 = 1;
 					imgSetFlag2 = 0;
 				}
@@ -272,31 +305,52 @@
 				{
 					console.log("in");
 					var easeInTime = 20;
-					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 50);
-					var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
+					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject0.imageCSSwidth - 10, host_div.clientHeight - subtitleObject0.imageCSSheight - 50);
+					var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
+					var kk = 3;
 					
-					subtitleObject.easeIn(500);
+					subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+					subtitleObject0.easeIn(500);
 					
-					subtitleObject.setAnimateRootPointer(2);
-					subtitleObject.easeIn(20);
-					subtitleObject.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);											   
-					/*for(var k = 2; k < 14; k++)
+					subtitleObject0.setAnimateRootPointer(2);
+					subtitleObject0.easeIn(20);
+					subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+					
+					for(var i = 3; i < 14; i++)
 					{
-						subtitleObject.setAnimateRootPointer(k);
-						subtitleObject.easeIn(0);
-						subtitleObject.transFromRectToRect(anchor1.x-500, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], anchor1.x - k*20, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], easeInTime);
-					}*/
+						subtitleObject0.setAnimateRootPointer(i);
+						subtitleObject0.easeIn(50);
+						subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 20);
+					}
+					/*setTimeout(function()
+						{
+							subtitleObject0.setAnimateRootPointer(3);
+							subtitleObject0.easeIn(50);
+							subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 20);
+						}, 50);*/
+					/*var setIntervalID = setInterval(function()
+						{
+							subtitleObject0.setAnimateRootPointer(kk);
+							subtitleObject0.easeIn(20);
+							subtitleObject0.transFromRectToRect(anchor1.x-500, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 50);
+							kk++;
+							if(kk == 14)
+							{
+								console.log("stop");
+								clearInterval(setIntervalID);
+							}
+						}, 50);*/
 					setTimeout(function()
 						{
-							subtitleObject.setAnimateRootPointer(0);
-							subtitleObject.easeIn(50);
-							subtitleObject.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+							subtitleObject0.setAnimateRootPointer(0);
+							subtitleObject0.easeIn(50);
+							subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
 							setTimeout(function()
 								{
-									subtitleObject.setAnimateRootPointer(1);
-									subtitleObject.easeIn(50);
-									subtitleObject.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
-									subtitleObject.resetAnimateRootPointer();
+									subtitleObject0.setAnimateRootPointer(1);
+									subtitleObject0.easeIn(50);
+									subtitleObject0.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+									subtitleObject0.resetAnimateRootPointer();
 								}, 400);
 						}, 200);								
 					subtitleStartFlag0 = 1;
@@ -309,23 +363,23 @@
 						console.log("out");
 						
 						var easeOutTime = 20;
-						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 50);
-						var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
+						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject0.imageCSSwidth - 10, host_div.clientHeight - subtitleObject0.imageCSSheight - 50);
+						var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
 						
-						subtitleObject.easeOut(0);
+						subtitleObject0.easeOut(50);
 						
-						subtitleObject.setAnimateRootPointer(2);
-						subtitleObject.easeOut(easeOutTime * 5);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
+						subtitleObject0.setAnimateRootPointer(2);
+						subtitleObject0.easeOut(easeOutTime * 5);
+						subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
 						
-						subtitleObject.setAnimateRootPointer(1);
-						subtitleObject.easeOut(0);
+						subtitleObject0.setAnimateRootPointer(1);
+						subtitleObject0.easeOut(0);
 						
-						subtitleObject.setAnimateRootPointer(0);
-						subtitleObject.easeOut(easeOutTime);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
+						subtitleObject0.setAnimateRootPointer(0);
+						subtitleObject0.easeOut(easeOutTime);
+						subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
 							
-						subtitleObject.resetAnimateRootPointer();
+						subtitleObject0.resetAnimateRootPointer();
 						
 						subtitleEndFlag0 = 1;
 						subtitleStartFlag0 = 0;
@@ -335,31 +389,32 @@
 				{
 					console.log("in");
 					var easeInTime = 20;
-					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 50);
-					var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
+					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject1.imageCSSwidth - 10, host_div.clientHeight - subtitleObject1.imageCSSheight - 50);
+					var boardSize = new jsSize(subtitleObject1.imageCSSwidth, subtitleObject1.imageCSSheight);
 					
-					subtitleObject.easeIn(500);
+					subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+					subtitleObject1.easeIn(500);
 					
-					subtitleObject.setAnimateRootPointer(4);
-					subtitleObject.easeIn(20);
-					subtitleObject.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);											   
+					subtitleObject1.setAnimateRootPointer(2);
+					subtitleObject1.easeIn(20);
+					subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, boardSize.width, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);											   
 					/*for(var k = 2; k < 14; k++)
 					{
-						subtitleObject.setAnimateRootPointer(k);
-						subtitleObject.easeIn(0);
-						subtitleObject.transFromRectToRect(anchor1.x-500, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], anchor1.x - k*20, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], easeInTime);
+						subtitleObject1.setAnimateRootPointer(k);
+						subtitleObject1.easeIn(0);
+						subtitleObject1.transFromRectToRect(anchor1.x-500, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], anchor1.x - k*20, anchor1.y, subtitleWidth[k-2], subtitleHeight[k-2], easeInTime);
 					}*/
 					setTimeout(function()
 						{
-							subtitleObject.setAnimateRootPointer(0);
-							subtitleObject.easeIn(50);
-							subtitleObject.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+							subtitleObject1.setAnimateRootPointer(0);
+							subtitleObject1.easeIn(50);
+							subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y, 0, boardSize.height, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
 							setTimeout(function()
 								{
-									subtitleObject.setAnimateRootPointer(3);
-									subtitleObject.easeIn(50);
-									subtitleObject.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
-									subtitleObject.resetAnimateRootPointer();
+									subtitleObject1.setAnimateRootPointer(1);
+									subtitleObject1.easeIn(50);
+									subtitleObject1.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime);
+									subtitleObject1.resetAnimateRootPointer();
 								}, 400);
 						}, 200);								
 					subtitleStartFlag1 = 1;
@@ -371,23 +426,23 @@
 					{
 						console.log("out");
 						var easeOutTime = 20;
-						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject.imageCSSwidth - 10, host_div.clientHeight - subtitleObject.imageCSSheight - 50);
-						var boardSize = new jsSize(subtitleObject.imageCSSwidth, subtitleObject.imageCSSheight);
+						var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject1.imageCSSwidth - 10, host_div.clientHeight - subtitleObject1.imageCSSheight - 50);
+						var boardSize = new jsSize(subtitleObject1.imageCSSwidth, subtitleObject1.imageCSSheight);
 						
-						subtitleObject.easeOut(0);
+						subtitleObject1.easeOut(0);
 						
-						subtitleObject.setAnimateRootPointer(4);
-						subtitleObject.easeOut(easeOutTime * 5);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
+						subtitleObject1.setAnimateRootPointer(2);
+						subtitleObject1.easeOut(easeOutTime * 5);
+						subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
 						
-						subtitleObject.setAnimateRootPointer(3);
-						subtitleObject.easeOut(0);
+						subtitleObject1.setAnimateRootPointer(1);
+						subtitleObject1.easeOut(0);
 						
-						subtitleObject.setAnimateRootPointer(0);
-						subtitleObject.easeOut(easeOutTime);
-						subtitleObject.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
+						subtitleObject1.setAnimateRootPointer(0);
+						subtitleObject1.easeOut(easeOutTime);
+						subtitleObject1.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
 							
-						subtitleObject.resetAnimateRootPointer();
+						subtitleObject1.resetAnimateRootPointer();
 						
 						subtitleEndFlag1 = 1;
 						subtitleStartFlag1 = 0;
@@ -405,32 +460,39 @@
 				//
 				objectLight = new indisObject(null, imgLight, false);
 				//
-				subtitleObject = new indisObject(null, img_subtile, false);				
+				subtitleObject0 = new indisObject(null, img_subtile, false);				
 				
 				var underneathObject = new indisObject(null, img_underneath, false);		// 0
-				subtitleObject.appendChildObject(underneathObject, "independentChild");
+				subtitleObject0.appendChildObject(underneathObject, "independentChild");
 
 				var channelObject = new indisObject(null, img_channel, false);				// 1
-				subtitleObject.appendChildObject(channelObject, "independentChild");
+				subtitleObject0.appendChildObject(channelObject, "independentChild");
 				
 				var channelObject = new indisObject(null, img_channel_logo, false);			// 2
-				subtitleObject.appendChildObject(channelObject, "independentChild");
+				subtitleObject0.appendChildObject(channelObject, "independentChild");
 				
-				var armaniLogoObject = new indisObject(null, img_armani_logo, false);		// 3
-				subtitleObject.appendChildObject(armaniLogoObject, "independentChild");
+				subtitleObject1 = new indisObject(null, img_subtile, false);
+				
+				var underneathObject = new indisObject(null, img_underneath, false);		// 0
+				subtitleObject1.appendChildObject(underneathObject, "independentChild");
+				
+				var armaniLogoObject = new indisObject(null, img_armani, false);			// 1
+				subtitleObject1.appendChildObject(armaniLogoObject, "independentChild");
 
-				var armaniObject = new indisObject(null, img_armani, false);				// 4
-				subtitleObject.appendChildObject(armaniObject, "independentChild");
+				var armaniObject = new indisObject(null, img_armani_logo, false);			// 2
+				subtitleObject1.appendChildObject(armaniObject, "independentChild");
 				
 				var baseNumber = 11;
-				for(var k = 0; k < baseNumber; k++)											// 5to15
+				for(var k = 0; k < baseNumber; k++)											// 3to13
 				{
-					var tempObject = new indisObject(null, img_subtile_base, false);
-					subtitleObject.appendChildObject(tempObject, "independentChild");
+					var tempObject = new indisObject(null, img_subtitle_element[k], false);
+					subtitleObject0.appendChildObject(tempObject, "independentChild");
 				}
-				
-				
-				//
+				for(var k = 0; k < baseNumber; k++)											// 3to13
+				{
+					var tempObject = new indisObject(null, img_subtitle_element[k], false);
+					subtitleObject1.appendChildObject(tempObject, "independentChild");
+				}
 				animate();
 			});	
 		</script>

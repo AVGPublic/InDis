@@ -37,6 +37,10 @@ app.get('/sportVG_video', function(req, res){
   res.sendfile('public/static/sportVG_video.html');
 });
 
+app.get('/360_video', function(req, res){
+  res.sendfile('public/static/360_video.html');
+});
+
 io.on('connection', function(socket){
   socket.on('get location', function()
   {
@@ -52,7 +56,7 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(80, function(){
+http.listen(18080, function(){
   console.log('Express server listening on port ' + app.get('port'));
   console.log('C/C++ addons.hello() =', addons.hello());
 

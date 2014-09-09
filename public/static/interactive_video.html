@@ -149,7 +149,7 @@
 			var subtitleObject0;
 			var subtitleObject1;
 			var objectLight;
-			var subtitleFly = [50, 70, 30, 20, 35, 45, 55, 60, 80, 30, 10];
+			var subtitleFly = [20, 30, 10, 8, 15, 25, 45, 15, 30, 20, 8];
 			//
 			function getLocation()
 			{
@@ -239,7 +239,7 @@
 			function drawFrame()
 			{
 				time = video.currentTime;
-				drawTime();
+				//drawTime();
 				
 				var mask = [];
 				var currentSection = judgeTime(time);
@@ -263,8 +263,8 @@
 				if (time <= endTime0 && time >= startTime0 && imgAnimationSetFlag0 == 0)
 				{
 					console.log("0in");
-					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(340, 330, 384, 180, 661, 340, 384, 180, 25);
+					objectLight.easeIn(8);
+					objectLight.transFromRectToRect(340, 330, 384, 180, 661, 340, 384, 180, 15);
 					imgAnimationSetFlag0 = 1;
 					imgSetFlag0 = 0;
 				}
@@ -273,15 +273,15 @@
 					if ((time > endTime0 || time < startTime0) && imgSetFlag0 == 0)
 					{
 						console.log("0out");
-						objectLight.easeOut(10);
+						objectLight.easeOut(8);
 						imgSetFlag0 = 1;
 						imgAnimationSetFlag0 = 0;
 					}	
 				}
 				if (time <= endTime1 && time >= startTime1 && imgAnimationSetFlag1 == 0)
 				{
-					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(700, 100, 384, 180, 100, 700, 384, 180, 25);
+					objectLight.easeIn(8);
+					objectLight.transFromRectToRect(700, 100, 384, 180, 100, 700, 384, 180, 15);
 					imgAnimationSetFlag1 = 1;
 					imgSetFlag1 = 0;
 				}
@@ -289,15 +289,15 @@
 				{
 					if ((time > endTime1 || time < startTime1) && imgSetFlag1 == 0)
 					{
-						objectLight.easeOut(10);
+						objectLight.easeOut(8);
 						imgSetFlag1 = 1;
 						imgAnimationSetFlag1 = 0;
 					}	
 				}
 				if (time <= endTime2 && time >= startTime2 && imgAnimationSetFlag2 == 0)
 				{
-					objectLight.easeIn(10);
-					objectLight.transFromRectToRect(100, 100, 384, 180, 700, 700, 384, 180, 25);
+					objectLight.easeIn(8);
+					objectLight.transFromRectToRect(100, 100, 384, 180, 700, 700, 384, 180, 15);
 					imgAnimationSetFlag2 = 1;
 					imgSetFlag2 = 0;
 				}
@@ -314,7 +314,7 @@
 				if (time <= subtitleEndTime0 && time >= subtitleStartTime0 && subtitleStartFlag0 == 0)
 				{
 					console.log("in");
-					var easeInTime = 50;
+					var easeInTime = 20;
 					var anchor1 = new jsPoint(host_div.clientWidth - subtitleObject0.imageCSSwidth - 10, host_div.clientHeight - subtitleObject0.imageCSSheight - 50);
 					var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
 					var kk = 0;

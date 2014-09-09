@@ -78,15 +78,15 @@
 		#img_chroma_title
 		{
 			position: absolute;
-			left: 30px;
-			top: 650px;
+			left: 800px;
+			top: 20px;
 			z-index: 3;
 		}
 		#return_button
 		{
 			position: absolute;
-			left: 5px;
-			top: 665px;
+			left: 950px;
+			top: 22px;
 			display: none;
 			z-index: 5;
 		}
@@ -365,7 +365,7 @@
 
 						if(objects_layer2[i].live)
 						{
-							if (objects_layer2[i].testObjectClick(pt))
+							if (objects_layer2[i].testStaticMaskClick(pt))
 							{
 								if (i == 1)
 								{
@@ -395,7 +395,7 @@
 				{
 					for (var i = 0; i < objectnum; i++)
 					{
-						if(objects_layer1[i].testObjectClick(pt))
+						if(objects_layer1[i].testStaticMaskClick(pt))
 						{
 							disableBreath();
 							objects_layer1[i].breath(200);
@@ -439,7 +439,7 @@
 				}
 				else if (globalstate == "scene2")
 				{
-					if(objects_layer1[4].testObjectClick(pt))
+					if(objects_layer1[4].testStaticMaskClick(pt))
 					{
 
 						globalstate_id_count += 1;

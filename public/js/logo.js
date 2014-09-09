@@ -114,13 +114,13 @@ document.addEventListener ('DOMContentLoaded', function () {
             map:te,
             transparent: true,
         });
-		for (var i = 0; i < 50; i++)
+		for (var i = 0; i < 100; i++)
 		{
 			particles[i] = new THREE.Sprite( material);
 			scene.add(particles[i]);
 				
 			particles[i].position.set( 0, 100, 0 )
-			particles[i].scale.x = particles[i].scale.y = 0.05;
+			particles[i].scale.x = particles[i].scale.y = 0.16;
 			
 			particles[i].material.opacity = 0.0;
 			
@@ -134,11 +134,11 @@ document.addEventListener ('DOMContentLoaded', function () {
 				var rany = -ranx + Math.random()*600;
 			}
 			tween1[i] = new TWEEN.Tween( particles[i].position )
-			.delay( i*7.5 )
+			.delay( i*15 )
 			.to( { x: ranx, y: rany, z: Math.random() * 100 - 50 }, 1500);
 
 			tween2[i] = new TWEEN.Tween( particles[i].scale )
-				.delay( i*7.5 )
+				.delay( i*15 )
 				.to( { x: 0, y: 0, z: 0}, 1500 );				
 		}
 		//
@@ -324,12 +324,12 @@ document.addEventListener ('DOMContentLoaded', function () {
         }
         if (start_particle == true && particle_started == false)
         {
-			for (var i = 0; i < 50; i++)
+			for (var i = 0; i < 100; i++)
 			{
-				particles[i].material.opacity = 0.4;
+				particles[i].material.opacity = 0.5;
 				
 				tween0[i] = new TWEEN.Tween( particles[i] )
-				.delay( i*7.5 )
+				.delay( i*15 )
 				.to( {}, 1500 )
 				.start();
       

@@ -14,7 +14,7 @@ app.configure(function () {
 });
 
 app.get('/', function(req, res){
-  res.sendfile('public/static/index.html');
+  res.sendfile('public/static/demo_index.html');
 });
 
 app.get('/logo', function(req, res){

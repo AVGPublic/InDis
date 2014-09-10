@@ -13,7 +13,7 @@ app.configure(function () {
 });
 
 app.get('/', function(req, res){
-  res.sendfile('public/static/logo.html');
+  res.sendfile('public/videosubtitle_chanel/test.html');
 });
 
 http.listen(18080, function(){

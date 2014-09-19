@@ -1,11 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-<div style="position: relative; width: 640px;">
-<video id=0 controls width=640 height=360>
-<source src="video/Clip/Clip.ogv" type='video/ogg; codecs="theora, vorbis"'/>
-<source src="video/Clip/Clip.webm" type='video/webm' >
-<source src="video/Clip/Clip.mp4" type='video/mp4'>
-<p>Video is not visible, most likely your browser does not support HTML5 video</p>
-</video>
-<img id="img_layer2_id0" src = "image/zm-3.png"/>
+	<head>
+		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="js/animateobject.js"></script>
+		<script src="videosubtitle_demo1/videosubtitle_pack/subtitle001.js"></script>
+		<link href="videosubtitle_demo1/videosubtitle_pack/subtitle001.css" rel="stylesheet">
+	</head>
+	<body>
+			<div style="position: relative; width: 640px;">
+			<video id="video" muted controls width=1200 height=800>
+			<source src="video/Clip/Clip.ogv" type='video/ogg; codecs="theora, vorbis"'/>
+			<source src="video/Clip/Clip.webm" type='video/webm' >
+			<source src="video/Clip/Clip.mp4" type='video/mp4'>
+			<p>Video is not visible, most likely your browser does not support HTML5 video</p>
+			</video>
+	</body>
+	<script> 
+	$("document").ready()
+	{
+		indis_preload(document.body, function(){
+		});
+	}
+
+	$("body").on( "playin", function( e ) {
+		indis_sceneplayin();
+		$("body").off("playin");
+	});
+	//
+	animate();
+	function animate ()  
+	{
+		var video = document.getElementById('video');
+		var time = video.currentTime;
+		if (time > 2)
+		{
+			$("body").trigger("playin");
+		}
+		if(time < 2)
+		{
+			$("body").on("playin");
+		}
+		requestAnimationFrame (animate);
+	}
+	</script> 
 </html>

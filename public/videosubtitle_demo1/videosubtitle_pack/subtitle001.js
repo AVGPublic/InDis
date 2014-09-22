@@ -95,7 +95,6 @@ function indis_sceneplayin()
 		kk++;
 		if(kk == 11)
 		{
-			console.log("stop");
 			clearInterval(setIntervalID);
 			setTimeout(function()
 			{

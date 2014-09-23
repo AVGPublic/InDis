@@ -16,17 +16,12 @@
 			</video>
 	</body>
 	<script> 
+	var indisEvOn;
 	$("document").ready()
 	{
-		indis_preload(document.body, function(){
-		});
+	    indisEv = new indisEventStateMachine(2);
+		indis_preload(document.body, function(){});
 	}
-
-	$("body").on( "playin", function( e ) {
-		indis_sceneplayin();
-		console.log("begin");
-		$("body").off("playin");
-	});
 	//
 	animate();
 	function animate ()  
@@ -35,12 +30,28 @@
 		var time = video.currentTime;
 		if (time > 2)
 		{
-			$("body").trigger("playin");
+			if(indisEv.TriggerOnceInAnimation(0))
+			{
+				indis_sceneplayin();
+			}
 		}
-		if(time < 2)
+		else if(time < 2)
 		{
-			$("body").on("playin");
+			indisEv.Reset(0);
 		}
+		
+		if (time > 5)
+		{
+			if(indisEv.TriggerOnceInAnimation(1))
+			{
+				indis_sceneplayoff();
+			}
+		}
+		else if(time < 2)
+		{
+			indisEv.Reset(1);
+		}
+		
 		requestAnimationFrame (animate);
 	}
 	</script> 

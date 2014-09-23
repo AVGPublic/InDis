@@ -1,3 +1,4 @@
+//---------------some basic geometry---------------------//
 function jsSize(width, height){
 	this.width = width;
 	this.height = height;
@@ -19,7 +20,58 @@ function isPointInPoly(poly, pt){
    && (c = !c);
    return c;
 }
+//---------------------------------------------------------//
+//---------------event state machine-----------------------//
+function indisEventStateMachine(num)
+{
+	this.num = num;
+	this.live = [];
+	this.lock = [];
+	for (var i = 0; i < num; i++)
+	{
+		this.live.push(false);
+		this.lock.push(false);
+	}
+	this.TriggerOnceInAnimation = TriggerOnceInAnimation;
+	this.Reset = Reset;
+	//
+	function TriggerOnceInAnimation(ID)
+	{
+		if (ID >= this.num || ID < 0)
+		{
+			return;
+		}
+		if (!this.lock[ID])
+		{
+			this.live[ID] = true;
+		}
+		else
+		{
+			this.live[ID] = false;
+		}
+		this.lock[ID] = true;
+		if (this.live[ID])
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	function Reset(ID)
+	{	
+		if (ID >= this.num || ID < 0)
+		{
+			return;
+		}
+		this.lock[ID] = false;
+		this.live[ID] = false;
+	}
+}
 
+//---------------------------------------------------------//
+//---------------animation object-------------------------//
 function staticObject(left, top, width, height, parentwidth, parentheight)
 {
 	this.onClickParentAction = "close";
@@ -543,4 +595,4 @@ function indisObject(mask, img, live)
 		return(isPointInPoly(this._mask, pt));
 	}
 }
-//
+//---------------------------------------------------------//

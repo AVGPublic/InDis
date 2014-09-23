@@ -1,9 +1,13 @@
 var canvas_subtitle;
 var ctx_subtitle;
+//
 var subtitleObject0;
 //
+var requestAnimationId;
 var subtitleFly = [20, 30, 10, 8, 15, 25, 45, 15, 30, 20, 8];
-
+//
+var requestId;
+//
 var indis_json_srcimageurls = {
 	"images":[
 	{"id":  "bg", "url": "videosubtitle_demo1/videosubtitle_pack/image/zm-3.png"},
@@ -25,8 +29,7 @@ var indis_json_srcimageurls = {
 	{"id":  "frag011", "url": "videosubtitle_demo1/videosubtitle_pack/image/zm011.png"}
 ]}
 //
-
-function indis_sceneanimate () 
+function indis_sceneanimate() 
 {
 	subtitleObject0.animate();
 	//
@@ -35,7 +38,7 @@ function indis_sceneanimate ()
 	{	
 		subtitleObject0.renderFrameInImageRect(ctx_subtitle);
 	}
-	requestAnimationFrame (indis_sceneanimate);
+	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
 function indis_initObjects(imgs)
 {
@@ -50,7 +53,7 @@ function indis_preload(parentNode, callback)
 {
 	canvas_subtitle = document.createElement('canvas');
 	ctx_subtitle = canvas_subtitle.getContext('2d');
-	canvas_subtitle.width = 1280;
+	canvas_subtitle.width = 580;
 	canvas_subtitle.height = 690;
 	parentNode.appendChild(canvas_subtitle);
 		
@@ -70,13 +73,67 @@ function indis_preload(parentNode, callback)
 		}
 	}
 }
-
+function indis_hardoff()
+{	
+	subtitleObject0.live = false;
+	if (requestId) 
+	{
+       window.cancelAnimationFrame(requestId);
+       requestId = undefined;
+    }
+}
+function indis_sceneplayoff()
+{
+	var easeOutTime = 20;
+	var anchor1 = new jsPoint(50, 10);
+	var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
+	
+	subtitleObject0.easeOut(50);
+	
+	subtitleObject0.setAnimateRootPointer(0);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(1);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(2);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(3);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(4);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(5);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(6);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(7);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(8);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(9);
+	subtitleObject0.easeOut(50);
+	subtitleObject0.setAnimateRootPointer(10);
+	subtitleObject0.easeOut(50);
+	
+	subtitleObject0.setAnimateRootPointer(13);
+	subtitleObject0.easeOut(easeOutTime * 5);
+	subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x-150, anchor1.y, boardSize.width, boardSize.height, easeOutTime);											   
+	
+	subtitleObject0.setAnimateRootPointer(12);
+	subtitleObject0.easeOut(0);
+	
+	subtitleObject0.setAnimateRootPointer(11);
+	subtitleObject0.easeOut(easeOutTime);
+	subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y ,boardSize.width, boardSize.height, anchor1.x+75, anchor1.y+45, boardSize.width/2, 0, easeOutTime);	
+		
+	subtitleObject0.resetAnimateRootPointer();
+	
+	setTimeout(indis_hardoff, 1000);
+}
 function indis_sceneplayin()
 {
 	indis_sceneanimate();
 
 	var easeInTime = 20;
-	var anchor1 = new jsPoint(canvas_subtitle.clientWidth - subtitleObject0.imageCSSwidth - 10, canvas_subtitle.clientHeight - subtitleObject0.imageCSSheight - 50);
+	var anchor1 = new jsPoint(50, 10);
 	var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
 	var kk = 0;
 	

@@ -238,7 +238,62 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack.push(child);
 		}
 	}
-	function transFromRectToRectBounce(left1, top1, width1, height1, left2, top2, width2, height2, duration)
+	function transFromRectToRectBounce(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay)
+	{
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._imagerecttranspointer = this._animatastack.length;
+			
+			var ani = [];
+			ani[0] = new animata();
+			ani[0].live = true;
+			ani[0].time = 0;
+			
+			ani[0].timekey.push(0); ani[0].values.push(left1); 
+			ani[0].timekey.push(delay); ani[0].values.push(left1); 
+			ani[0].timekey.push(delay+0.7*duration); ani[0].values.push(left2 + 0.2*(left2 - left1));
+			ani[0].timekey.push(delay+0.9*duration); ani[0].values.push(left2 - 0.1*(left2 - left1));
+			ani[0].timekey.push(delay+duration); ani[0].values.push(left2);
+			this._animatastack.push(ani[0]);
+
+			ani[1] = new animata();
+			ani[1].live = true;
+			ani[1].time = 0;
+			ani[1].timekey.push(0); ani[0].values.push(top1);
+			ani[1].timekey.push(delay); ani[1].values.push(top1); 
+			ani[1].timekey.push(delay+0.7*duration); ani[1].values.push(top2 + 0.2*(top2 - top1));
+			ani[1].timekey.push(delay+0.9*duration); ani[1].values.push(top2 - 0.1*(top2 - top1));
+			ani[1].timekey.push(delay+duration); ani[1].values.push(top2);
+			this._animatastack.push(ani[1]);
+
+			ani[2] = new animata();
+			ani[2].live = true;
+			ani[2].time = 0;
+			ani[2].timekey.push(0); ani[2].values.push(width1); 
+			ani[2].timekey.push(delay); ani[2].values.push(width1); 
+			ani[2].timekey.push(delay+0.7*duration); ani[2].values.push(width2 + 0.2*(width2 - width1));
+			ani[2].timekey.push(delay+0.9*duration); ani[2].values.push(width2 - 0.1*(width2 - width1));
+			ani[2].timekey.push(delay+duration); ani[2].values.push(width2); 
+
+			this._animatastack.push(ani[2]);
+
+			ani[3] = new animata();
+			ani[3].live = true;
+			ani[3].time = 0;
+			ani[3].timekey.push(0); ani[3].values.push(height1); 
+			ani[3].timekey.push(delay); ani[3].values.push(height1); 
+			ani[3].timekey.push(delay+0.7*duration); ani[3].values.push(height2 + 0.2*(height2 - height1));
+			ani[3].timekey.push(delay+0.9*duration); ani[3].values.push(height2 - 0.1*(height2 - height1));
+			ani[3].timekey.push(delay+duration); ani[3].values.push(height2);
+			this._animatastack.push(ani[3]);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay);
+		}
+	}
+	function transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -250,86 +305,40 @@ function indisObject(mask, img, live)
 			ani[0].live = true;
 			ani[0].time = 0;
 			ani[0].timekey.push(0); ani[0].values.push(left1); 
-			ani[0].timekey.push(0.7*duration); ani[0].values.push(left2 + 0.2*(left2 - left1));
-			ani[0].timekey.push(0.9*duration); ani[0].values.push(left2 - 0.1*(left2 - left1));
-			ani[0].timekey.push(duration); ani[0].values.push(left2);
+			ani[0].timekey.push(delay); ani[0].values.push(left1); 
+			ani[0].timekey.push(delay+duration); ani[0].values.push(left2);
 			this._animatastack.push(ani[0]);
 
 			ani[1] = new animata();
 			ani[1].live = true;
 			ani[1].time = 0;
 			ani[1].timekey.push(0); ani[1].values.push(top1); 
-			ani[1].timekey.push(0.7*duration); ani[1].values.push(top2 + 0.2*(top2 - top1));
-			ani[1].timekey.push(0.9*duration); ani[1].values.push(top2 - 0.1*(top2 - top1));
-			ani[1].timekey.push(duration); ani[1].values.push(top2);
+			ani[1].timekey.push(delay); ani[1].values.push(top1); 
+			ani[1].timekey.push(delay+duration); ani[1].values.push(top2);
 			this._animatastack.push(ani[1]);
 
 			ani[2] = new animata();
 			ani[2].live = true;
 			ani[2].time = 0;
 			ani[2].timekey.push(0); ani[2].values.push(width1); 
-			ani[2].timekey.push(0.7*duration); ani[2].values.push(width2 + 0.2*(width2 - width1));
-			ani[2].timekey.push(0.9*duration); ani[2].values.push(width2 - 0.1*(width2 - width1));
-			ani[2].timekey.push(duration); ani[2].values.push(width2); 
-
+			ani[2].timekey.push(delay); ani[2].values.push(width1); 
+			ani[2].timekey.push(delay+duration); ani[2].values.push(width2);
 			this._animatastack.push(ani[2]);
 
 			ani[3] = new animata();
 			ani[3].live = true;
 			ani[3].time = 0;
 			ani[3].timekey.push(0); ani[3].values.push(height1); 
-			ani[3].timekey.push(0.7*duration); ani[3].values.push(height2 + 0.2*(height2 - height1));
-			ani[3].timekey.push(0.9*duration); ani[3].values.push(height2 - 0.1*(height2 - height1));
-			ani[3].timekey.push(duration); ani[3].values.push(height2);
+			ani[3].timekey.push(delay); ani[3].values.push(height1); 
+			ani[3].timekey.push(delay+duration); ani[3].values.push(height2);
 			this._animatastack.push(ani[3]);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration);
+			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay);
 		}
 	}
-	function transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration)
-	{
-		if (this._animaterootpointer == -1)
-		{
-			this.live = true;
-			this._imagerecttranspointer = this._animatastack.length;
-			
-			var ani = [];
-			ani[0] = new animata();
-			ani[0].live = true;
-			ani[0].time = 0;
-			ani[0].timekey.push(0); ani[0].values.push(left1); 
-			ani[0].timekey.push(duration); ani[0].values.push(left2);
-			this._animatastack.push(ani[0]);
-
-			ani[1] = new animata();
-			ani[1].live = true;
-			ani[1].time = 0;
-			ani[1].timekey.push(0); ani[1].values.push(top1); 
-			ani[1].timekey.push(duration); ani[1].values.push(top2);
-			this._animatastack.push(ani[1]);
-
-			ani[2] = new animata();
-			ani[2].live = true;
-			ani[2].time = 0;
-			ani[2].timekey.push(0); ani[2].values.push(width1); 
-			ani[2].timekey.push(duration); ani[2].values.push(width2);
-			this._animatastack.push(ani[2]);
-
-			ani[3] = new animata();
-			ani[3].live = true;
-			ani[3].time = 0;
-			ani[3].timekey.push(0); ani[3].values.push(height1); 
-			ani[3].timekey.push(duration); ani[3].values.push(height2);
-			this._animatastack.push(ani[3]);
-		}
-		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
-		{
-			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration);
-		}
-	}
-	function easeInHighlightEaseOut(duration)
+	function easeInHighlightEaseOut(duration, delay)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -341,18 +350,19 @@ function indisObject(mask, img, live)
 			ani.live = true;
 			ani.time = 0;
 			ani.timekey.push(0); ani.values.push(0); 
-			ani.timekey.push(0.45*duration); ani.values.push(0.4); 
-			ani.timekey.push(0.5*duration); ani.values.push(1);
-			ani.timekey.push(0.55*duration); ani.values.push(0.4);
-			ani.timekey.push(duration); ani.values.push(0);
+			ani.timekey.push(delay); ani.values.push(0); 
+			ani.timekey.push(delay+0.45*duration); ani.values.push(0.4); 
+			ani.timekey.push(delay+0.5*duration); ani.values.push(1);
+			ani.timekey.push(delay+0.55*duration); ani.values.push(0.4);
+			ani.timekey.push(delay+duration); ani.values.push(0);
 			this._animatastack.push(ani);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].easeInHighlightEaseOut(duration);
+			this._animateIndependChildStack[this._animaterootpointer].easeInHighlightEaseOut(duration, delay);
 		}
 	}
-	function easeIn(duration)
+	function easeIn(duration, delay)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -364,15 +374,16 @@ function indisObject(mask, img, live)
 			ani.live = true;
 			ani.time = 0;
 			ani.timekey.push(0); ani.values.push(0); 
-			ani.timekey.push(duration); ani.values.push(1);
+			ani.timekey.push(delay); ani.values.push(0); 
+			ani.timekey.push(delay+duration); ani.values.push(1);
 			this._animatastack.push(ani);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].easeIn(duration);
+			this._animateIndependChildStack[this._animaterootpointer].easeIn(duration, delay);
 		}
 	}
-	function easeOut(duration)
+	function easeOut(duration, delay)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -384,15 +395,16 @@ function indisObject(mask, img, live)
 			ani.live = true;
 			ani.time = 0;
 			ani.timekey.push(0); ani.values.push(1); 
-			ani.timekey.push(duration); ani.values.push(0);
+			ani.timekey.push(delay); ani.values.push(1); 
+			ani.timekey.push(delay+duration); ani.values.push(0);
 			this._animatastack.push(ani);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].easeOut(duration);
+			this._animateIndependChildStack[this._animaterootpointer].easeOut(duration, delay);
 		}
 	}
-	function breath(duration)
+	function breath(duration, delay)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -404,14 +416,15 @@ function indisObject(mask, img, live)
 			ani.live = true;
 			ani.time = 0;
 			ani.timekey.push(0);  ani.values.push(0);
-			ani.timekey.push(0.45*duration);  ani.values.push(1.0);
-			ani.timekey.push(0.55*duration);  ani.values.push(1.0);
-			ani.timekey.push(1.0*duration);  ani.values.push(0);
+			ani.timekey.push(delay);  ani.values.push(0);
+			ani.timekey.push(delay+0.45*duration);  ani.values.push(1.0);
+			ani.timekey.push(delay+0.55*duration);  ani.values.push(1.0);
+			ani.timekey.push(delay+1.0*duration);  ani.values.push(0);
 			this._animatastack.push(ani);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].breath(duration);
+			this._animateIndependChildStack[this._animaterootpointer].breath(duration, delay);
 		}
 	}
 

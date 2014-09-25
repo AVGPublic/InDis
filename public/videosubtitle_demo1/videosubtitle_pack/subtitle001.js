@@ -1,5 +1,5 @@
-var canvas_subtitle;
-var ctx_subtitle;
+var canvas_render;
+var ctx_render;
 //
 var subtitleObject0;
 //
@@ -8,7 +8,7 @@ var subtitleFly = [20, 30, 10, 8, 15, 25, 45, 15, 30, 20, 8];
 //
 var requestId;
 //
-var canvas_subtitle_top, canvas_subtitle_left;
+var canvas_render_top, canvas_render_left;
 //
 var indis_json_srcimageurls = {
 	"images":[
@@ -31,17 +31,17 @@ var indis_json_srcimageurls = {
 //
 function indis_settopleft(top, left)
 {
-	canvas_subtitle_top = top;
-	canvas_subtitle_left = left;
+	canvas_render_top = top;
+	canvas_render_left = left;
 }
 function indis_sceneanimate() 
 {
 	subtitleObject0.animate();
 	//
-	ctx_subtitle.clearRect(0, 0, canvas_subtitle.width, canvas_subtitle.height);
+	ctx_render.clearRect(0, 0, canvas_render.width, canvas_render.height);
 	if(subtitleObject0.live)
 	{	
-		subtitleObject0.renderFrameInImageRect(ctx_subtitle);
+		subtitleObject0.renderFrameInImageRect(ctx_render);
 	}
 	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
@@ -56,17 +56,18 @@ function indis_initObjects(imgs)
 }
 function indis_preload(parentNode, callback)
 {
-	canvas_subtitle = document.createElement('canvas');
-	canvas_subtitle.id = "render_canvas";
-	ctx_subtitle = canvas_subtitle.getContext('2d');
-	canvas_subtitle.width = 580;
-	canvas_subtitle.height = 690;
-	strTop = canvas_subtitle_top + "px";
-	strLeft = canvas_subtitle_left + "px";
-	canvas_subtitle.style.top = strTop;
-	canvas_subtitle.style.left = strLeft;
-	parentNode.appendChild(canvas_subtitle);
-
+	canvas_render = document.createElement('canvas');
+	canvas_render.id = "canvas_render";
+	ctx_render = canvas_render.getContext('2d');
+	canvas_render.width = 410;
+	canvas_render.height = 96;
+	strTop = canvas_render_top + "px";
+	strLeft = canvas_render_left + "px";
+	canvas_render.style.top = strTop;
+	canvas_render.style.left = strLeft;
+	//
+	parentNode.appendChild(canvas_render);
+	
 	var imgs = [];
 	var numLoaded = 0;
 	for (var i = 0; i < indis_json_srcimageurls.images.length; i++)
@@ -82,6 +83,19 @@ function indis_preload(parentNode, callback)
 			}
 		}
 	}
+	// 
+    if ("ontouchstart" in window) 
+	{
+        $("#canvas_render").on("touchstart", onTouchEvent);
+        $("#canvas_render").on("touchmove", onTouchEvent);
+        $("#canvas_render").on("touchend", onTouchEvent);
+    } 
+	else 
+	{
+        $("#canvas_render").on("mousedown", onMouseEvent);
+        $("#canvas_render").on("mouseup", onMouseEvent);
+        $("#canvas_render").on("mousemove", onMouseEvent);
+    }
 }
 function indis_hardoff()
 {	
@@ -169,4 +183,26 @@ function indis_sceneplayin()
 	subtitleObject0.easeIn(50, 11*4 + 30);
 	subtitleObject0.transFromRectToRect(anchor1.x+120, anchor1.y+45, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, easeInTime, 11*4 + 30);
 	subtitleObject0.resetAnimateRootPointer();
+}
+var onMouseEvent = function(event) 
+{
+	switch (event.type) 
+	{
+		case "mousedown": 
+			{
+				
+			}
+			break;
+		case "mouseup":
+			alert("up");
+			break;
+		case "mousemove": 
+			break;
+		default:
+			return;
+	}
+}
+function onTouchEvent()
+{
+
 }

@@ -82,6 +82,7 @@ function indis_preload(parentNode, callback)
 				callback();
 			}
 		}
+		parentNode.appendChild(imgs[i]);
 	}
 	// 
     if ("ontouchstart" in window) 

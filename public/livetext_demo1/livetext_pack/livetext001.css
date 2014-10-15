@@ -1,0 +1,6 @@
+#canvas_render
+{
+	position:absolute;
+	z-index: 10;
+	opacity: 1;
+}

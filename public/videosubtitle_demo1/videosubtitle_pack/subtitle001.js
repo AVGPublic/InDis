@@ -82,7 +82,6 @@ function indis_preload(parentNode, callback)
 				callback();
 			}
 		}
-		parentNode.appendChild(imgs[i]);
 	}
 	// 
     if ("ontouchstart" in window) 
@@ -190,12 +189,8 @@ var onMouseEvent = function(event)
 	switch (event.type) 
 	{
 		case "mousedown": 
-			{
-				
-			}
 			break;
 		case "mouseup":
-			alert("up");
 			break;
 		case "mousemove": 
 			break;

@@ -127,29 +127,57 @@ function animata()
 	this.live = false;
 	this.time = 0;
 	this.value = -1;
+	this.valuedot = -1;
+	this.valuedotdot = -1;
+	//
 	this.timekey = [];
 	this.values = [];
-	
+	//
+	this.dynamicsystem = false;
+	this.stateupdatefunc = undefined;
+	this.setUpdateFunc = setUpdateFunc;
+	//
 	this.update = update;
 	function update()
 	{
-		inrange = false;
-		for (var i = 1; i < this.timekey.length; i++)
+		if (this.dynamicsystem)
 		{
-			if (this.time < this.timekey[i])
+		    if (this.stateupdatefunc  == undefined)
 			{
-				inrange = true;
-				prog = (this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]);
-				this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
-				break;
+				return;
+			}
+			var out = this.stateupdatefunc(this.value, this.valuedot, this.valuedotdot);
+			this.value = out.v1;
+			this.valuedot = out.v2;
+			this.valuedotdot = out.v3;
+		}
+		else
+		{
+			inrange = false;
+			for (var i = 1; i < this.timekey.length; i++)
+			{
+				if (this.time < this.timekey[i])
+				{
+					inrange = true;
+					prog = (this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]);
+					this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
+					break;
+				}
+			}
+			this.time++;
+			if (!inrange)
+			{
+				this.live = false;
 			}
 		}
-		this.time++;
-		if (!inrange)
-		{
-			this.live = false;
-		}
 	}
+	function setUpdateFunc(callback)
+	{
+		this.stateupdatefunc = callback;
+		this.dynamicsystem = true;
+	}
+	//
+	
 }
 function indisObject(mask, img, live)
 {
@@ -217,7 +245,9 @@ function indisObject(mask, img, live)
 	this.testObjectClickReturnAction = testObjectClickReturnAction;
 	this.testStaticMaskClick = testStaticMaskClick;
 	this.updateMask = updateMask;
-	
+	//
+	this.test = test;
+	//
 	function updateMask(mask)
 	{
 		//this._mask.clear();
@@ -240,6 +270,46 @@ function indisObject(mask, img, live)
 		else if (type == "independentChild")
 		{
 			this._animateIndependChildStack.push(child);
+		}
+	}
+	function test()
+	{
+		var func = function(v1, v2, v3)
+		{
+			return {v1: v1+2.0, v2: v2, v3: v3};
+		}
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._imagerecttranspointer = this._animatastack.length;
+			
+			var ani = [];
+			ani[0] = new animata();
+			ani[0].live = true;
+			ani[0].time = 0;
+			ani[0].setUpdateFunc(func);
+			this._animatastack.push(ani[0]);
+			
+			ani[1] = new animata();
+			ani[1].live = true;
+			ani[1].time = 0;
+			ani[1].timekey.push(0); ani[1].values.push(0); 
+			ani[1].timekey.push(1000); ani[1].values.push(0); 
+			this._animatastack.push(ani[1]);
+			
+			ani[2] = new animata();
+			ani[2].live = true;
+			ani[2].time = 0;
+			ani[2].timekey.push(0); ani[2].values.push(500); 
+			ani[2].timekey.push(1000); ani[2].values.push(500); 
+			this._animatastack.push(ani[2]);
+			
+			ani[3] = new animata();
+			ani[3].live = true;
+			ani[3].time = 0;
+			ani[3].timekey.push(0); ani[3].values.push(500); 
+			ani[3].timekey.push(1000); ani[3].values.push(500); 
+			this._animatastack.push(ani[3]);
 		}
 	}
 	function transFromRectToRectBounce(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay)

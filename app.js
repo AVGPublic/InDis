@@ -12,6 +12,10 @@ app.configure(function () {
   app.use(express.static(path.join(__dirname, 'public')));
 });
 
+app.get('/test', function(req, res){
+  res.sendfile('public/livetext_demo1/test.html');
+});
+
 app.get('/', function(req, res){
   res.sendfile('public/static/mainpage.html');
 });

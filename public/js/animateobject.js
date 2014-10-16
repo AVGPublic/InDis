@@ -21,10 +21,6 @@ function isPointInPoly(poly, pt){
    return c;
 }
 //---------------------------------------------------------//
-//---------------mouse state and gesture-------------------//
-//---------------------------------------------------------//
-
-//---------------------------------------------------------//
 //---------------event state machine-----------------------//
 function indisEventStateMachine(num)
 {
@@ -74,8 +70,109 @@ function indisEventStateMachine(num)
 	}
 }
 
+
+//-------------dynamic system function lib-----------------//
+var dynamicSysFuncLib = (function (dynamicSysFuncLib) 
+{
+   dynamicSysFuncLib.attractorStringDynamic = function(v1, v2, v3, param) 
+   {
+		return {v1: v1 + 2, v2: v2, v3: v3};
+   }
+   dynamicSysFuncLib.mouseRepulseEvent = function(v1, v2, v3, param)
+   {
+		return {v1: v1 - 100, v2: v2, v3: v3};
+   }
+   //
+   return dynamicSysFuncLib
+}(dynamicSysFuncLib || {}));
+//---------------------------------------------------------//
+//---------------mouse state and gesture-------------------//
+
 //---------------------------------------------------------//
 //---------------animation object-------------------------//
+function animata()
+{
+	this.live = false;
+	this.time = 0;
+	this.value = -1;
+	this.valuedot = -1;
+	this.valuedotdot = -1;
+	//keys
+	//
+	this.timekey = [];
+	this.values = [];
+	
+	//dynamic system
+	//
+	this.param = undefined;
+	//
+	this.dynamicsystem = false;
+	this.stateupdatefunc = undefined;
+	this.setUpdateFunc = setUpdateFunc;
+	//
+	this.listen2ControlEvent = false;
+	this.controlEvent = controlEvent;
+	this.controlEventFunc = undefined;
+	this.setControlEventFunc = setControlEventFunc;
+	//
+	this.update = update;
+	function update()
+	{
+		if (this.dynamicsystem)
+		{
+		    if (this.stateupdatefunc  == undefined)
+			{
+				return;
+			}
+			var out = this.stateupdatefunc(this.value, this.valuedot, this.valuedotdot, this.param);
+			this.value = out.v1;
+			this.valuedot = out.v2;
+			this.valuedotdot = out.v3;
+		}
+		else
+		{
+			inrange = false;
+			for (var i = 1; i < this.timekey.length; i++)
+			{
+				if (this.time < this.timekey[i])
+				{
+					inrange = true;
+					prog = (this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]);
+					this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
+					break;
+				}
+			}
+			this.time++;
+			if (!inrange)
+			{
+				this.live = false;
+			}
+		}
+	}
+	function setUpdateFunc(callback, param)
+	{
+		this.dynamicsystem = true;
+		this.stateupdatefunc = callback;
+		this.param = param;
+	}
+	function setControlEventFunc(callback)
+	{
+		this.listen2ControlEvent = true;
+		this.controlEventFunc = callback;
+	}
+	function controlEvent(param)
+	{
+		if (this.listen2ControlEvent)
+		{
+			var out = this.controlEventFunc(this.value, this.valuedot, this.valuedotdot, this.param);
+			this.value = out.v1;
+			this.valuedot = out.v2;
+			this.valuedotdot = out.v3;
+		}
+	}
+	//
+}
+//
 function staticObject(left, top, width, height, parentwidth, parentheight)
 {
 	this.onClickParentAction = "close";
@@ -122,63 +219,6 @@ function staticObject(left, top, width, height, parentwidth, parentheight)
 	}
 }
 
-function animata()
-{
-	this.live = false;
-	this.time = 0;
-	this.value = -1;
-	this.valuedot = -1;
-	this.valuedotdot = -1;
-	//
-	this.timekey = [];
-	this.values = [];
-	//
-	this.dynamicsystem = false;
-	this.stateupdatefunc = undefined;
-	this.setUpdateFunc = setUpdateFunc;
-	//
-	this.update = update;
-	function update()
-	{
-		if (this.dynamicsystem)
-		{
-		    if (this.stateupdatefunc  == undefined)
-			{
-				return;
-			}
-			var out = this.stateupdatefunc(this.value, this.valuedot, this.valuedotdot);
-			this.value = out.v1;
-			this.valuedot = out.v2;
-			this.valuedotdot = out.v3;
-		}
-		else
-		{
-			inrange = false;
-			for (var i = 1; i < this.timekey.length; i++)
-			{
-				if (this.time < this.timekey[i])
-				{
-					inrange = true;
-					prog = (this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]);
-					this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
-					break;
-				}
-			}
-			this.time++;
-			if (!inrange)
-			{
-				this.live = false;
-			}
-		}
-	}
-	function setUpdateFunc(callback)
-	{
-		this.stateupdatefunc = callback;
-		this.dynamicsystem = true;
-	}
-	//
-	
-}
 function indisObject(mask, img, live)
 {
 	this.live = live;
@@ -246,7 +286,8 @@ function indisObject(mask, img, live)
 	this.testStaticMaskClick = testStaticMaskClick;
 	this.updateMask = updateMask;
 	//
-	this.test = test;
+	this.registorDynamicBehavior = registorDynamicBehavior;
+	this.test2 = test2;
 	//
 	function updateMask(mask)
 	{
@@ -272,22 +313,24 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack.push(child);
 		}
 	}
-	function test()
+	function test2()
 	{
-		var func = function(v1, v2, v3)
-		{
-			return {v1: v1+2.0, v2: v2, v3: v3};
-		}
+		this._animatastack[this._imagerecttranspointer].controlEvent({});
+	}
+	function registorDynamicBehavior(dynamicSysUpdateFunc, controlEventFunc)
+	{
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
 			this._imagerecttranspointer = this._animatastack.length;
-			
+	
 			var ani = [];
 			ani[0] = new animata();
 			ani[0].live = true;
 			ani[0].time = 0;
-			ani[0].setUpdateFunc(func);
+			var param = {anchor: 0.35};
+			ani[0].setUpdateFunc(dynamicSysUpdateFunc, param);
+			ani[0].setControlEventFunc(controlEventFunc);
 			this._animatastack.push(ani[0]);
 			
 			ani[1] = new animata();

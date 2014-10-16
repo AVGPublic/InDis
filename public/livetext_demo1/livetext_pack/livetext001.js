@@ -1,6 +1,7 @@
 var canvas_render;
 var ctx_render;
 //
+var indisControlMonitor;
 var subtitleObject0;
 //
 var requestAnimationId;
@@ -105,6 +106,7 @@ function indis_sceneplayin()
 	
 	subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 100, 0);
 	subtitleObject0.easeIn(100, 0);
+	subtitleObject0.registorDynamicBehavior(dynamicSysFuncLib.attractorStringDynamic, dynamicSysFuncLib.mouseRepulseEvent);
 	//
 }
 var onMouseEvent = function(event) 
@@ -112,7 +114,7 @@ var onMouseEvent = function(event)
 	switch (event.type) 
 	{
 		case "mousedown": 
-			subtitleObject0.test();
+			subtitleObject0.test2();
 			break;
 		case "mouseup":
 			break;

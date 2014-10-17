@@ -74,19 +74,48 @@ function indisEventStateMachine(num)
 //-------------dynamic system function lib-----------------//
 var dynamicSysFuncLib = (function (dynamicSysFuncLib) 
 {
+   dynamicSysFuncLib.attractorStringParam = 
+	{anchor: 10.0, k: 1.0, nv: 0.1, dt: 1};
    dynamicSysFuncLib.attractorStringDynamic = function(v1, v2, v3, param) 
    {
-		return {v1: v1 + 2, v2: v2, v3: v3};
+		var v1_, v2_, v3_;
+		v3_ = -param.k*(v1 - param.anchor) - param.nv*v2;
+		v2_ = v2 + param.dt*v3_;
+		v1_ = v1 + param.dt*v2_;
+		return {v1: v1_, v2: v2_, v3: v3_};
    }
-   dynamicSysFuncLib.mouseRepulseEvent = function(v1, v2, v3, param)
+   dynamicSysFuncLib.mouseRepulseEvent = function(v1, v2, v3, param, controlparam)
    {
-		return {v1: v1 - 100, v2: v2, v3: v3};
+		return {v1: 0, v2: v2, v3: v3};
    }
    //
    return dynamicSysFuncLib
 }(dynamicSysFuncLib || {}));
 //---------------------------------------------------------//
 //---------------mouse state and gesture-------------------//
+function indisController()
+{
+	this.animateObjects = [];
+	this.controlEvent = [];
+
+	this.registor2Controller = registor2Controller;
+	this.onMouseEvent = onMouseEvent;
+	function registor2Controller(animateobject, event)
+	{
+		this.animateObjects.push(animateobject);
+		this.controlEvent.push(event);
+	}
+	function onMouseEvent(event)
+	{
+		for(var i = 0; i < this.controlEvent.length; i++)
+		{
+			if (this.controlEvent[i] == event.type)
+			{
+				this.animateObjects[i].onControlEvent(event);
+			}
+		}
+	}
+}
 
 //---------------------------------------------------------//
 //---------------animation object-------------------------//
@@ -111,7 +140,7 @@ function animata()
 	this.setUpdateFunc = setUpdateFunc;
 	//
 	this.listen2ControlEvent = false;
-	this.controlEvent = controlEvent;
+	this.onControlEvent = onControlEvent;
 	this.controlEventFunc = undefined;
 	this.setControlEventFunc = setControlEventFunc;
 	//
@@ -160,11 +189,11 @@ function animata()
 		this.listen2ControlEvent = true;
 		this.controlEventFunc = callback;
 	}
-	function controlEvent(param)
+	function onControlEvent(controlparam)
 	{
 		if (this.listen2ControlEvent)
 		{
-			var out = this.controlEventFunc(this.value, this.valuedot, this.valuedotdot, this.param);
+			var out = this.controlEventFunc(this.value, this.valuedot, this.valuedotdot, this.param, controlparam);
 			this.value = out.v1;
 			this.valuedot = out.v2;
 			this.valuedotdot = out.v3;
@@ -255,6 +284,7 @@ function indisObject(mask, img, live)
 	this._localAlpha = 0;
 	//
 	this._animatastack = [];
+	this._controlstack = [];
 	//
 	this._staticChildStack = [];
 	this._animateChildStack = [];
@@ -287,7 +317,7 @@ function indisObject(mask, img, live)
 	this.updateMask = updateMask;
 	//
 	this.registorDynamicBehavior = registorDynamicBehavior;
-	this.test2 = test2;
+	this.onControlEvent = onControlEvent;
 	//
 	function updateMask(mask)
 	{
@@ -313,11 +343,17 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack.push(child);
 		}
 	}
-	function test2()
+	function onControlEvent()
 	{
-		this._animatastack[this._imagerecttranspointer].controlEvent({});
+		for(var i = 0; i < this._controlstack.length; i++)
+		{
+			if (this._animatastack[this._controlstack[i]] != -1 && this._animatastack[this._controlstack[i]] != undefined)
+			{
+				this._animatastack[this._controlstack[i]].onControlEvent(event);
+			}
+		}
 	}
-	function registorDynamicBehavior(dynamicSysUpdateFunc, controlEventFunc)
+	function registorDynamicBehavior(dynamicSysUpdateFunc, controlEventFunc, param)
 	{
 		if (this._animaterootpointer == -1)
 		{
@@ -328,10 +364,10 @@ function indisObject(mask, img, live)
 			ani[0] = new animata();
 			ani[0].live = true;
 			ani[0].time = 0;
-			var param = {anchor: 0.35};
 			ani[0].setUpdateFunc(dynamicSysUpdateFunc, param);
 			ani[0].setControlEventFunc(controlEventFunc);
 			this._animatastack.push(ani[0]);
+			this._controlstack.push(this._imagerecttranspointer);
 			
 			ani[1] = new animata();
 			ani[1].live = true;

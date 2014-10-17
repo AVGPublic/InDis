@@ -1,7 +1,7 @@
 var canvas_render;
 var ctx_render;
 //
-var indisControlMonitor;
+var indisControllerObject;
 var subtitleObject0;
 //
 var requestAnimationId;
@@ -64,37 +64,38 @@ function indis_preload(parentNode, callback)
 		imgs[i].onload = function()
 		{
 			numLoaded++;
-			if (numLoaded == indis_json_srcimageurls.images.length){
+			if (numLoaded == indis_json_srcimageurls.images.length)
+			{
 				indis_initObjects(imgs);
+				indisControllerObject = new indisController();
+
+				if ("ontouchstart" in window) 
+				{
+					$("#canvas_render").on("touchstart", onTouchEvent);
+					$("#canvas_render").on("touchmove", onTouchEvent);
+					$("#canvas_render").on("touchend", onTouchEvent);
+				} 
+				else 
+				{
+					$("#canvas_render").on("mousedown", onMouseEvent);
+					$("#canvas_render").on("mouseup", onMouseEvent);
+					$("#canvas_render").on("mousemove", onMouseEvent);
+				}
 				callback();
 			}
 		}
 	}
-	// 
-    if ("ontouchstart" in window) 
-	{
-        $("#canvas_render").on("touchstart", onTouchEvent);
-        $("#canvas_render").on("touchmove", onTouchEvent);
-        $("#canvas_render").on("touchend", onTouchEvent);
-    } 
-	else 
-	{
-        $("#canvas_render").on("mousedown", onMouseEvent);
-        $("#canvas_render").on("mouseup", onMouseEvent);
-        $("#canvas_render").on("mousemove", onMouseEvent);
-    }
+	//
 }
-function indis_hardoff()
-{	
+
+function indis_sceneplayoff()
+{
 	subtitleObject0.live = false;
 	if (requestId) 
 	{
        window.cancelAnimationFrame(requestId);
        requestId = undefined;
     }
-}
-function indis_sceneplayoff()
-{
 }
 function indis_sceneplayin()
 {
@@ -104,24 +105,16 @@ function indis_sceneplayin()
 	var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
 	var kk = 0;
 	
-	subtitleObject0.transFromRectToRect(anchor1.x, anchor1.y, 0, 0, anchor1.x, anchor1.y, boardSize.width, boardSize.height, 100, 0);
 	subtitleObject0.easeIn(100, 0);
-	subtitleObject0.registorDynamicBehavior(dynamicSysFuncLib.attractorStringDynamic, dynamicSysFuncLib.mouseRepulseEvent);
+	subtitleObject0.registorDynamicBehavior(dynamicSysFuncLib.attractorStringDynamic, dynamicSysFuncLib.mouseRepulseEvent, dynamicSysFuncLib.attractorStringParam);
+	indisControllerObject.registor2Controller(subtitleObject0, "mousedown");
 	//
 }
 var onMouseEvent = function(event) 
 {
-	switch (event.type) 
+	if(indisControllerObject != undefined)
 	{
-		case "mousedown": 
-			subtitleObject0.test2();
-			break;
-		case "mouseup":
-			break;
-		case "mousemove": 
-			break;
-		default:
-			return;
+		indisControllerObject.onMouseEvent(event);
 	}
 }
 function onTouchEvent()

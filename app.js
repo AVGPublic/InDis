@@ -20,6 +20,6 @@ app.get('/', function(req, res){
   res.sendfile('public/static/mainpage.html');
 });
 
-http.listen(18080, function(){
+http.listen(80, function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

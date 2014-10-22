@@ -2,10 +2,10 @@ var canvas_render;
 var ctx_render;
 //
 var indisControllerObject;
-var subtitleObject0;
+var pieces = [];
+var piecespos = [[20, 20], [35, 50], [50, 80], [65, 110], [80, 140], [95, 170], [110, 140], [125, 110], [140, 80], [155, 50], [170, 20]];
 //
 var requestAnimationId;
-var subtitleFly = [20, 30, 10, 8, 15, 25, 45, 15, 30, 20, 8];
 //
 var requestId;
 //
@@ -23,22 +23,31 @@ function indis_settopleft(top, left)
 }
 function indis_sceneanimate() 
 {
-	subtitleObject0.animate();
+	for (var i = 0; i < pieces.length; i++)
+	{
+		pieces[i].animate();
+	}
 	//
 	ctx_render.clearRect(0, 0, canvas_render.width, canvas_render.height);
-	if(subtitleObject0.live)
-	{	
-		subtitleObject0.renderFrameInImageRect(ctx_render);
+	for (var i = 0; i < pieces.length; i++)
+	{
+		if(pieces[i].live)
+		{	
+			pieces[i].renderFrameInImageRect(ctx_render);
+		}
 	}
 	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
 function indis_initObjects(imgs)
 {
-	subtitleObject0  = new indisObject(null, imgs[0], false)
-	for (var i = 1; i < imgs.length; i++)
+	for (var j = 0; j < piecespos.length; j++)
 	{
-		var tempObject = new indisObject(null, imgs[i], false);
-		subtitleObject0.appendChildObject(tempObject, "independentChild");
+		pieces[j]  = new indisObject(null, imgs[0], false)
+		for (var i = 1; i < imgs.length; i++)
+		{
+			var tempObject = new indisObject(null, imgs[i], false);
+			pieces[j].appendChildObject(tempObject, "independentChild");
+		}
 	}
 }
 function indis_preload(parentNode, callback)
@@ -46,7 +55,7 @@ function indis_preload(parentNode, callback)
 	canvas_render = document.createElement('canvas');
 	canvas_render.id = "canvas_render";
 	ctx_render = canvas_render.getContext('2d');
-	canvas_render.width = 800;
+	canvas_render.width = 1280;
 	canvas_render.height = 600;
 	strTop = canvas_render_top + "px";
 	strLeft = canvas_render_left + "px";
@@ -71,9 +80,9 @@ function indis_preload(parentNode, callback)
 
 				if ("ontouchstart" in window) 
 				{
-					$("#canvas_render").on("touchstart", onTouchEvent);
-					$("#canvas_render").on("touchmove", onTouchEvent);
-					$("#canvas_render").on("touchend", onTouchEvent);
+					$("#canvas_render").on("touchstart", onMouseEvent);
+					$("#canvas_render").on("touchmove", onMouseEvent);
+					$("#canvas_render").on("touchend", onMouseEvent);
 				} 
 				else 
 				{
@@ -90,24 +99,37 @@ function indis_preload(parentNode, callback)
 
 function indis_sceneplayoff()
 {
-	subtitleObject0.live = false;
+	for (var i = 0; i < pieces.length; i++)
+	{
+		pieces[i].live = false;
+	}
 	if (requestId) 
 	{
        window.cancelAnimationFrame(requestId);
        requestId = undefined;
     }
 }
+
 function indis_sceneplayin()
 {
 	indis_sceneanimate();
 	
-	var anchor1 = new jsPoint(0, 10);
-	var boardSize = new jsSize(subtitleObject0.imageCSSwidth, subtitleObject0.imageCSSheight);
+	var anchor1 = new jsPoint(0, 0);
+	var boardSize = new jsSize(5, 5);
 	var kk = 0;
 	
-	subtitleObject0.easeIn(100, 0);
-	subtitleObject0.registorDynamicBehavior(dynamicSysFuncLib.attractorStringDynamic, dynamicSysFuncLib.mouseRepulseEvent, dynamicSysFuncLib.attractorStringParam);
-	indisControllerObject.registor2Controller(subtitleObject0, "mousedown");
+	for (var i = 0; i < pieces.length; i++)
+	{
+		pieces[i].easeIn(100, 0);
+		pieces[i].transToRect(piecespos[i][0], piecespos[i][1], 15, 20, 50, 0);
+		setTimeout(function(i){
+			var param = cloneJSONparam(dynamicSysFuncLib.attractorStringParam);
+			param.anchor.x = piecespos[i][0]; param.anchor.y = piecespos[i][1];
+			pieces[i].registorDynamicBehavior("position", dynamicSysFuncLib.attractorStringDynamic, dynamicSysFuncLib.mouseRepulseEvent, 
+			param)
+		}, 800, i);
+		indisControllerObject.registor2Controller(pieces[i], "mousedown");
+	}
 	//
 }
 var onMouseEvent = function(event) 

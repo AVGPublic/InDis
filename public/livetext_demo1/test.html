@@ -2,6 +2,7 @@
 <html lang="en">
 	<head>
 		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="threejs/three.min.js"></script>
 		<script src="js/animateobject.js"></script>
 		<script src="livetext_demo1/livetext_pack/livetext001.js"></script>
 		<link href="livetext_demo1/livetext_pack/livetext001.css" rel="stylesheet">
@@ -16,7 +17,7 @@
 	{
 		indis_preload(document.body, function()
 		{
-			indis_settopleft($("#host").top + $("#host").height() - 150, $("#host").position().left + $("#host").width() - 400);
+			indis_setrect(0, 0, 800, 600, 800, 600);
 			indis_sceneplayin();
 		});
 	

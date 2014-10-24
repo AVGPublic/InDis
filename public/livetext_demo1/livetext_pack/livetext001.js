@@ -1,5 +1,7 @@
-var canvas_render;
-var ctx_render;
+var canvas_scene;
+var ctx_scene;
+var canvas_offscreen;
+var ctx_offscreen;
 //
 var indisControllerObject;
 var pieces = [];
@@ -9,17 +11,35 @@ var requestAnimationId;
 //
 var requestId;
 //
-var canvas_render_top, canvas_render_left;
+var offscreen_rect = new jsRect();
+var scene_rect = new jsRect();
 //
 var indis_json_srcimageurls = {
 	"images":[
 	{"id":  "frag", "url": "livetext_demo1/livetext_pack/image/live_fragment.png"},
 ]}
 //
-function indis_settopleft(top, left)
+function indis_setrect(left, top, width, height, canvaswidth, canvasheight)
 {
-	canvas_render_top = top;
-	canvas_render_left = left;
+	scene_rect.x = 0;
+	scene_rect.y = 0;
+	scene_rect.w = width;
+	scene_rect.h = height;
+	//
+	offscreen_rect.x = 0;
+	offscreen_rect.y = 0;
+	offscreen_rect.w = canvaswidth;
+	offscreen_rect.h = canvasheight;
+	//
+	canvas_offscreen.width = offscreen_rect.w;
+	canvas_offscreen.height = offscreen_rect.h;
+	canvas_scene.width = width;
+	canvas_scene.height = height;
+	//
+	strTop = top + "px";
+	strLeft = left + "px";
+	canvas_scene.style.top = strTop;
+	canvas_scene.style.left = strLeft;
 }
 function indis_sceneanimate() 
 {
@@ -28,14 +48,18 @@ function indis_sceneanimate()
 		pieces[i].animate();
 	}
 	//
-	ctx_render.clearRect(0, 0, canvas_render.width, canvas_render.height);
+	ctx_offscreen.clearRect(offscreen_rect.x, offscreen_rect.y, offscreen_rect.w, offscreen_rect.h);
 	for (var i = 0; i < pieces.length; i++)
 	{
 		if(pieces[i].live)
 		{	
-			pieces[i].renderFrameInImageRect(ctx_render);
+			pieces[i].renderFrameInImageRect(ctx_offscreen);
 		}
 	}
+	ctx_offscreen.strokeRect(offscreen_rect.x, offscreen_rect.y, offscreen_rect.w, offscreen_rect.h);
+	
+	ctx_scene.clearRect(0, 0, scene_rect.w, scene_rect.h);
+	ctx_scene.drawImage(canvas_offscreen, 0, 0, scene_rect.w, scene_rect.h);
 	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
 function indis_initObjects(imgs)
@@ -52,17 +76,15 @@ function indis_initObjects(imgs)
 }
 function indis_preload(parentNode, callback)
 {
-	canvas_render = document.createElement('canvas');
-	canvas_render.id = "canvas_render";
-	ctx_render = canvas_render.getContext('2d');
-	canvas_render.width = 1280;
-	canvas_render.height = 600;
-	strTop = canvas_render_top + "px";
-	strLeft = canvas_render_left + "px";
-	canvas_render.style.top = strTop;
-	canvas_render.style.left = strLeft;
-	//
-	parentNode.appendChild(canvas_render);
+	canvas_scene = document.createElement('canvas');
+	canvas_scene.id = "canvas_scene";
+	ctx_scene = canvas_scene.getContext('2d');
+	parentNode.appendChild(canvas_scene);
+	
+	canvas_offscreen = document.createElement('canvas');
+	canvas_offscreen.id = "canvas_offscreen";
+	ctx_offscreen = canvas_offscreen.getContext('2d');
+	
 	
 	var imgs = [];
 	var numLoaded = 0;
@@ -80,15 +102,15 @@ function indis_preload(parentNode, callback)
 
 				if ("ontouchstart" in window) 
 				{
-					$("#canvas_render").on("touchstart", onMouseEvent);
-					$("#canvas_render").on("touchmove", onMouseEvent);
-					$("#canvas_render").on("touchend", onMouseEvent);
+					$("#canvas_scene").on("touchstart", onMouseEvent);
+					$("#canvas_scene").on("touchmove", onMouseEvent);
+					$("#canvas_scene").on("touchend", onMouseEvent);
 				} 
 				else 
 				{
-					$("#canvas_render").on("mousedown", onMouseEvent);
-					$("#canvas_render").on("mouseup", onMouseEvent);
-					$("#canvas_render").on("mousemove", onMouseEvent);
+					$("#canvas_scene").on("mousedown", onMouseEvent);
+					$("#canvas_scene").on("mouseup", onMouseEvent);
+					$("#canvas_scene").on("mousemove", onMouseEvent);
 				}
 				callback();
 			}
@@ -113,6 +135,11 @@ function indis_sceneplayoff()
 function indis_sceneplayin()
 {
 	indis_sceneanimate();
+	
+	var test = [];
+	test["a"] = [1, 2];
+	test["b"] = 2;
+	alert(test[1]);
 	
 	var anchor1 = new jsPoint(0, 0);
 	var boardSize = new jsSize(5, 5);

@@ -381,14 +381,22 @@ function indisObject(mask, img, live)
 	this.testObjectClick = testObjectClick;
 	this.testObjectClickReturnAction = testObjectClickReturnAction;
 	this.testStaticMaskClick = testStaticMaskClick;
+	this.updateImage = updateImage;
 	this.updateMask = updateMask;
 	//
 	this.registorDynamicBehavior = registorDynamicBehavior;
 	this.onControlEvent = onControlEvent;
 	//
+	function updateImage(img)
+	{
+		this._image = img;
+		this.imageCSSwidth = this._image.width;
+		this.imageCSSheight = this._image.height;
+		this.imageNaturalwidth = this._image.naturalWidth;
+		this.imageNaturalheight = this._image.naturalHeight;
+	}
 	function updateMask(mask)
 	{
-		//this._mask.clear();
 		this._mask = mask;
 	}
 	function resetAnimateRootPointer()

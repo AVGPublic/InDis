@@ -13,7 +13,7 @@ app.configure(function () {
 });
 
 app.get('/test', function(req, res){
-  res.sendfile('public/livetext_demo1/test.html');
+  res.sendfile('public/virtualsport_demo1/test.html');
 });
 
 app.get('/', function(req, res){

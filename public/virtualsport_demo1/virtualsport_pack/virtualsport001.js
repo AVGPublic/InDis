@@ -20,7 +20,7 @@ var scene_rect = new jsRect();
 var indis_json_srcimageurls = {
 	"images":[
 	//{"id":  "frag", "url": "livetext_demo1/livetext_pack/image/live_fragment.png"},
-	{"id":  "frag", "url": "textures/HermitCrab.png"},
+	{"id":  "frag", "url": "livetext_demo1/livetext_pack/image/live_fragment.png"},
 ]}
 //
 function indis_setrect(left, top, width, height, canvaswidth, canvasheight)
@@ -60,13 +60,14 @@ function indis_sceneanimate()
 			pieces[i].renderFrameInImageRect(ctx_offscreen);
 		}
 	}
-	ctx_offscreen.strokeRect(offscreen_rect.x, offscreen_rect.y, offscreen_rect.w, offscreen_rect.h);
-	
+
 	ctx_scene.clearRect(0, 0, scene_rect.w, scene_rect.h);
+
 	ctx_scene.drawImage(canvas_offscreen, 0, 0, scene_rect.w, scene_rect.h);
-	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 	
 	renderer.render (scene, camera);
+	ctx_scene.drawImage(renderer.domElement, 0, 0, scene_rect.w, scene_rect.h);
+	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
 function indis_initObjects(imgs)
 {
@@ -118,25 +119,26 @@ function indis_preload(parentNode, callback)
 					$("#canvas_scene").on("mousemove", onMouseEvent);
 				}
 				//
-				renderer = new THREE.WebGLRenderer( { antialias: true} );
+				renderer = new THREE.CanvasRenderer( {antialias: true, alpha: true} );
+				renderer.setClearColor( 0xFFFFFF, 0.0 );
 				renderer.setSize (window.innerWidth, window.innerHeight);
-				parentNode.appendChild (renderer.domElement);
-					   
+				
 				camera = new THREE.PerspectiveCamera (
 						45, window.innerWidth / window.innerHeight, 1, 1000);
-				camera.position.y = 100;
-				camera.position.z = 500;
+				camera.position.y = 0;
+				camera.position.z = 900;
 				//
 				scene = new THREE.Scene();
 				 
-				var texture = new THREE.Texture(imgs[0]);
-				texture.image = imgs[0];
-				texture.needsUpdate = true;
-	
-				var material_allplane = new THREE.MeshBasicMaterial ({  map: texture, side: THREE.DoubleSide, blending: THREE.NormalBlending} );
+				//var texture = new THREE.Texture(imgs[0]);
+				//texture.image = imgs[0];
+				//texture.needsUpdate = true;
+				var texture = THREE.ImageUtils.loadTexture ('textures/HermitCrab.png');
+				
+				var material_allplane = new THREE.MeshBasicMaterial ({  map: texture, side: THREE.DoubleSide} );
 				var geometry_planes = new THREE.PlaneGeometry (200, 200);
 				var plan = new THREE.Mesh (geometry_planes, material_allplane);
-				plan.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI/4.0);
+				plan.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI/2.2);
 				scene.add(plan);
 
 				//

@@ -267,6 +267,26 @@ function animata()
 	}
 	//
 }
+function delayton(delay, animateobject)
+{	
+	this.live = true;
+	this.aniobj = animateobject;
+	//
+	this._time = 0;
+	this._delay = delay;
+	//
+	this.update = update;
+	function update()
+	{
+		this._time += 1;
+		if (this._time >= delay)
+		{
+			this.live = false;
+			this.ondelayed();
+		}
+	}
+
+}
 //
 function staticObject(left, top, width, height, parentwidth, parentheight)
 {
@@ -349,16 +369,14 @@ function indisObject(mask, img, live)
 	
 	this._localAlpha = 0;
 	//
+	this._animatePointerHash = [];
 	this._animatastack = [];
 	this._controlstack = [];
+	this._delaytack = [];
 	//
 	this._staticChildStack = [];
 	this._animateChildStack = [];
 	this._animateIndependChildStack = [];
-	//
-	this._opacitypointer = -1;
-	this._imagerecttranspointer = -1;
-	this._affinetranspointer = -1;
 	//
 	this._animaterootpointer = -1;
 	//
@@ -387,6 +405,35 @@ function indisObject(mask, img, live)
 	this.registorDynamicBehavior = registorDynamicBehavior;
 	this.onControlEvent = onControlEvent;
 	//
+	function animate()
+	{
+		var somethingalive = false;
+		for (var i = 0; i < this._animatastack.length; i++)
+		{
+			if (this._animatastack[i].live == true)
+			{
+				somethingalive = true;
+				this._animatastack[i].update();
+			}
+		}
+		if(!somethingalive && this.autodeath)
+		{
+			this.live = false;
+		}
+		//
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			this._animateIndependChildStack[i].animate();
+		}
+		//
+		for (var i = 0; i < this._delaytack.length; i++)
+		{
+			if(this._delaytack[i].live)
+			{
+				this._delaytack[i].update();
+			}
+		}
+	}
 	function updateImage(img)
 	{
 		this._image = img;
@@ -428,13 +475,23 @@ function indisObject(mask, img, live)
 			}
 		}
 	}
-	function registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param)
+	function registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param, delay)
 	{
+		if (delay != undefined && delay >= 0)
+		{
+			var delayer = new delayton(delay, this);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				this.aniobj.registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param, undefined);
+			}
+			return;
+		}
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
-			this._imagerecttranspointer = this._animatastack.length;
-	
+			this._animatePointerHash["rect"] = this._animatastack.length;
+
 			if (variable == "position")
 			{
 				var ani = [];
@@ -446,7 +503,7 @@ function indisObject(mask, img, live)
 				ani[0].setUpdateFunc(dynamicSysUpdateFunc, param1);
 				ani[0].setControlEventFunc(controlEventFunc);
 				this._animatastack.push(ani[0]);
-				this._controlstack.push(this._imagerecttranspointer);
+				this._controlstack.push(this._animatastack.length);
 				
 				ani[1] = new animata();
 				ani[1].live = true;
@@ -456,7 +513,7 @@ function indisObject(mask, img, live)
 				ani[1].setUpdateFunc(dynamicSysUpdateFunc, param2);
 				ani[1].setControlEventFunc(controlEventFunc);
 				this._animatastack.push(ani[1]);
-				this._controlstack.push(this._imagerecttranspointer+1);
+				this._controlstack.push(this._animatastack.length+1);
 			}
 		}
 	}
@@ -465,7 +522,7 @@ function indisObject(mask, img, live)
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
-			this._imagerecttranspointer = this._animatastack.length;
+			this._animatePointerHash["rect"] = this._animatastack.length;
 			
 			var ani = [];
 			ani[0] = new animata();
@@ -517,42 +574,48 @@ function indisObject(mask, img, live)
 	}
 	function transToRect(left, top, width, height, duration, delay)
 	{
+		if (delay != undefined && delay >= 0)
+		{
+			var delayer = new delayton(delay, this);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				this.aniobj. transToRect(left, top, width, height, duration, undefined)
+			}
+			return;
+		}
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
-			this._imagerecttranspointer = this._animatastack.length;
+			this._animatePointerHash["rect"] = this._animatastack.length;
 			
 			var ani = [];
 			ani[0] = new animata();
 			ani[0].live = true;
 			ani[0].time = 0;
 			ani[0].timekey.push(0); ani[0].values.push(this._rect[0]); 
-			ani[0].timekey.push(delay); ani[0].values.push(this._rect[0]); 
-			ani[0].timekey.push(delay+duration); ani[0].values.push(left);
+			ani[0].timekey.push(duration); ani[0].values.push(left);
 			this._animatastack.push(ani[0]);
 
 			ani[1] = new animata();
 			ani[1].live = true;
 			ani[1].time = 0;
 			ani[1].timekey.push(0); ani[1].values.push(this._rect[1]); 
-			ani[1].timekey.push(delay); ani[1].values.push(this._rect[1]); 
-			ani[1].timekey.push(delay+duration); ani[1].values.push(top);
+			ani[1].timekey.push(duration); ani[1].values.push(top);
 			this._animatastack.push(ani[1]);
 
 			ani[2] = new animata();
 			ani[2].live = true;
 			ani[2].time = 0;
 			ani[2].timekey.push(0); ani[2].values.push(this._rect[2]); 
-			ani[2].timekey.push(delay); ani[2].values.push(this._rect[2]); 
-			ani[2].timekey.push(delay+duration); ani[2].values.push(width);
+			ani[2].timekey.push(duration); ani[2].values.push(width);
 			this._animatastack.push(ani[2]);
 
 			ani[3] = new animata();
 			ani[3].live = true;
 			ani[3].time = 0;
 			ani[3].timekey.push(0); ani[3].values.push(this._rect[3]); 
-			ani[3].timekey.push(delay); ani[3].values.push(this._rect[3]); 
-			ani[3].timekey.push(delay+duration); ani[3].values.push(height);
+			ani[3].timekey.push(duration); ani[3].values.push(height);
 			this._animatastack.push(ani[3]);
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
@@ -565,7 +628,7 @@ function indisObject(mask, img, live)
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
-			this._imagerecttranspointer = this._animatastack.length;
+			this._animatePointerHash["rect"] = this._animatastack.length;
 			
 			var ani = [];
 			ani[0] = new animata();
@@ -611,7 +674,7 @@ function indisObject(mask, img, live)
 		{
 			this.live = true;
 			this.autodeath = true;
-			this._opacitypointer = this._animatastack.length;
+			this._animatePointerHash["opacity"] = this._animatastack.length;
 			//
 			var ani = new animata();
 			ani.live = true;
@@ -635,7 +698,7 @@ function indisObject(mask, img, live)
 		{
 			this.live = true;
 			this.autodeath = false;
-			this._opacitypointer = this._animatastack.length;
+			this._animatePointerHash["opacity"] = this._animatastack.length;
 			//
 			var ani = new animata();
 			ani.live = true;
@@ -656,7 +719,7 @@ function indisObject(mask, img, live)
 		{
 			this.live = true;
 			this.autodeath = true;
-			this._opacitypointer = this._animatastack.length;
+			this._animatePointerHash["opacity"] = this._animatastack.length;
 			//
 			var ani = new animata();
 			ani.live = true;
@@ -676,7 +739,7 @@ function indisObject(mask, img, live)
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
-			this._opacitypointer = this._animatastack.length;
+			this._animatePointerHash["opacity"] = this._animatastack.length;
 			//
 			this.autodeath = true;
 			var ani = new animata();
@@ -694,49 +757,30 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].breath(duration, delay);
 		}
 	}
-
-	function animate()
-	{
-		var somethingalive = false;
-		for (var i = 0; i < this._animatastack.length; i++)
-		{
-			if (this._animatastack[i].live == true)
-			{
-				somethingalive = true;
-				this._animatastack[i].update();
-			}
-		}
-		if(!somethingalive && this.autodeath)
-		{
-			this.live = false;
-		}
-		//
-		for (var i = 0; i < this._animateIndependChildStack.length; i++)
-		{
-			this._animateIndependChildStack[i].animate();
-		}
-	}
 	function renderFrameInImageRect(context)
 	{
-		if (this._imagerecttranspointer != -1)
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var opacitypoint = this._animatePointerHash["opacity"];
+		//
+		if (imagerecttranspointer != undefined)
 		{
 			for (var i = 0; i < 4; i++)
 			{
-				if (this._animatastack[this._imagerecttranspointer + i] != undefined)
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
 				{
-					if (this._animatastack[this._imagerecttranspointer + i].live == true)
+					if (this._animatastack[imagerecttranspointer + i].live == true)
 					{	
-						this._rect[i] = this._animatastack[this._imagerecttranspointer + i].value;
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
 					}
 				}
 			}
 		}
 
-		if (this._opacitypointer != -1)
+		if (opacitypoint != undefined)
 		{
-			if (this._animatastack[this._opacitypointer].live == true)
+			if (this._animatastack[opacitypoint].live == true)
 			{
-				this._localAlpha = this._animatastack[this._opacitypointer].value;
+				this._localAlpha = this._animatastack[opacitypoint].value;
 			}
 		}
 		context.save();
@@ -757,22 +801,24 @@ function indisObject(mask, img, live)
 
 	function renderFrameInMaskRect(context)
 	{
-		if (this._imagerecttranspointer != -1)
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var opacitypoint = this._animatePointerHash["opacity"];
+		if (imagerecttranspointer != undefined)
 		{
 			for (var i = 0; i < 4; i++)
 			{
-				if (this._animatastack[this._imagerecttranspointer + i].live == true)
+				if (this._animatastack[imagerecttranspointer + i].live == true)
 				{	
-					this._rect[i] = this._animatastack[this._imagerecttranspointer + i].value;
+					this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
 				}
 			}
 		}
 
-		if (this._opacitypointer != -1)
+		if (opacitypoint != undefined)
 		{
-			if (this._animatastack[this._opacitypointer].live == true)
+			if (this._animatastack[opacitypoint].live == true)
 			{
-				this._localAlpha = this._animatastack[this._opacitypointer].value;
+				this._localAlpha = this._animatastack[opacitypoint].value;
 			}
 		}
 

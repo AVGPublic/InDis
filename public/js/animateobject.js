@@ -74,7 +74,6 @@ function indisEventStateMachine(num)
 	}
 }
 
-
 //-------------dynamic system function lib-----------------//
 var dynamicSysFuncLib = (function (dynamicSysFuncLib) 
 {
@@ -213,6 +212,10 @@ function animata()
 	this.update = update;
 	function update()
 	{
+		if (!this.live)
+		{
+			return;
+		}
 		if (this.dynamicsystem)
 		{
 		    if (this.stateupdatefunc  == undefined)
@@ -229,10 +232,11 @@ function animata()
 			inrange = false;
 			for (var i = 1; i < this.timekey.length; i++)
 			{
-				if (this.time < this.timekey[i])
+				if (this.time <= this.timekey[i])
 				{
 					inrange = true;
-					prog = (this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]);
+	
+					prog = (this.timekey[i] != this.timekey[i-1])?(this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]):0;
 					this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
 					break;
 				}
@@ -342,6 +346,27 @@ function indisObject(mask, img, live)
 	this.autodeath = false;
 	this.onClickAction = "NULL";
 	//
+	if (img != null)
+	{
+		this._image = img;
+		//
+		this.imageCSSwidth = this._image.width;
+		this.imageCSSheight = this._image.height;
+		this.imageNaturalwidth = this._image.naturalWidth;
+		this.imageNaturalheight = this._image.naturalHeight;
+	}
+	else
+	{
+		var canvas_temp = document.createElement('canvas');
+		canvas_temp.width = 1;
+		canvas_temp.height = 1;
+		this._image = canvas_temp;
+		this.imageCSSwidth = 1;
+		this.imageCSSheight = 1;
+		this.imageNaturalwidth = 1;
+		this.imageNaturalheight = 1;
+	}
+	//
 	this._mask = [];
 	if (mask != null)
 	{
@@ -350,16 +375,10 @@ function indisObject(mask, img, live)
 	else
 	{
 		this._mask.push(new jsPoint(0, 0));
-		this._mask.push(new jsPoint(img.width, 0));
-		this._mask.push(new jsPoint(img.width,img.height));
-		this._mask.push(new jsPoint(0, img.height));
+		this._mask.push(new jsPoint(this._image.width, 0));
+		this._mask.push(new jsPoint(this._image.width,this._image.height));
+		this._mask.push(new jsPoint(0, this._image.height));
 	}
-	this._image = img;
-	//
-	this.imageCSSwidth = this._image.width;
-	this.imageCSSheight = this._image.height;
-	this.imageNaturalwidth = this._image.naturalWidth;
-	this.imageNaturalheight = this._image.naturalHeight;
 	//
 	this._rect = [];
 	this._rect[0] = 0;
@@ -368,6 +387,11 @@ function indisObject(mask, img, live)
 	this._rect[3] = this.imageCSSheight;
 	
 	this._localAlpha = 0;
+	
+	this._affine = [1, 0, 0, 1, 0, 0]; //scalex, tiltx, tilty, scaley, transferx, transfery
+	this._rotate = 0;
+	this._anchor = [0, 0];
+	this._scale = [1, 1];
 	//
 	this._animatePointerHash = [];
 	this._animatastack = [];
@@ -386,11 +410,15 @@ function indisObject(mask, img, live)
 	this.transToRect = transToRect;
 	this.transFromRectToRect = transFromRectToRect;
 	this.transFromRectToRectBounce = transFromRectToRectBounce;
+	this.rotate = rotate;
+	this.scaleTo = scaleTo;
+	this.easeTo = easeTo;
 	this.easeIn = easeIn;
 	this.easeOut = easeOut;
 	this.easeInHighlightEaseOut = easeInHighlightEaseOut;
 	this.breath = breath;
 	this.animate = animate;
+	this.renderFrame = renderFrame;
 	this.renderImage = renderImage;
 	this.renderFrameInImageRect = renderFrameInImageRect;
 	this.renderFrameInMaskRect = renderFrameInMaskRect;
@@ -477,7 +505,7 @@ function indisObject(mask, img, live)
 	}
 	function registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param, delay)
 	{
-		if (delay != undefined && delay >= 0)
+		if (delay != undefined && delay > 0)
 		{
 			var delayer = new delayton(delay, this);
 			this._delaytack.push(delayer);
@@ -503,7 +531,7 @@ function indisObject(mask, img, live)
 				ani[0].setUpdateFunc(dynamicSysUpdateFunc, param1);
 				ani[0].setControlEventFunc(controlEventFunc);
 				this._animatastack.push(ani[0]);
-				this._controlstack.push(this._animatastack.length);
+				this._controlstack.push(this._animatePointerHash["rect"]);
 				
 				ani[1] = new animata();
 				ani[1].live = true;
@@ -513,7 +541,7 @@ function indisObject(mask, img, live)
 				ani[1].setUpdateFunc(dynamicSysUpdateFunc, param2);
 				ani[1].setControlEventFunc(controlEventFunc);
 				this._animatastack.push(ani[1]);
-				this._controlstack.push(this._animatastack.length+1);
+				this._controlstack.push(this._animatePointerHash["rect"]+1);
 			}
 		}
 	}
@@ -572,9 +600,77 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay);
 		}
 	}
+	function scaleTo(scalex, scaley, duration, delay)
+	{
+		if (delay != undefined && delay > 0)
+		{
+			var delayer = new delayton(delay, this);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				this.aniobj.scaleTo(angle, duration, undefined);
+			}
+			return;
+		}
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._animatePointerHash["scale"] = this._animatastack.length;
+
+			var ani = [];
+			ani[0] = new animata();
+			ani[0].live = true;
+			ani[0].time = 0;
+			ani[0].timekey.push(0); ani[0].values.push(this._scale[0]); 
+			ani[0].timekey.push(duration); ani[0].values.push(scalex);
+			this._animatastack.push(ani[0]);
+
+			ani[1] = new animata();
+			ani[1].live = true;
+			ani[1].time = 0;
+			ani[1].timekey.push(0); ani[1].values.push(this._scale[1]); 
+			ani[1].timekey.push(duration); ani[1].values.push(scaley);
+			this._animatastack.push(ani[1]);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, duration, delay);
+		}
+		
+	}
+	function rotate(angle, anchorx, anchory, duration, delay)
+	{
+		if (delay != undefined && delay > 0)
+		{
+			var delayer = new delayton(delay, this);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				this.aniobj.rotate(angle, duration, undefined);
+			}
+			return;
+		}
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._animatePointerHash["rotate"] = this._animatastack.length;
+			this._anchor[0] = anchorx; this._anchor[1] = anchory;
+			
+			var ani = new animata();
+			ani.live = true;
+			ani.time = 0;
+			ani.timekey.push(0); ani.values.push(this._rotate); 
+			ani.timekey.push(duration); ani.values.push(this._rotate+angle);
+			this._animatastack.push(ani);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, duration, delay);
+		}
+	}
 	function transToRect(left, top, width, height, duration, delay)
 	{
-		if (delay != undefined && delay >= 0)
+		if (delay != undefined && delay > 0)
 		{
 			var delayer = new delayton(delay, this);
 			this._delaytack.push(delayer);
@@ -668,6 +764,36 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay);
 		}
 	}
+	function easeTo(value, duration, delay)
+	{
+		if (delay != undefined && delay > 0)
+		{
+			var delayer = new delayton(delay, this);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				this.aniobj.easeTo(value, duration, undefined);
+			}
+			return;
+		}
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this.autodeath = false;
+			this._animatePointerHash["opacity"] = this._animatastack.length;
+			//
+			var ani = new animata();
+			ani.live = true;
+			ani.time = 0;
+			ani.timekey.push(0); ani.values.push(this._localAlpha); 
+			ani.timekey.push(duration); ani.values.push(value);
+			this._animatastack.push(ani);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].easeIn(duration, delay);
+		}
+	}
 	function easeInHighlightEaseOut(duration, delay)
 	{
 		if (this._animaterootpointer == -1)
@@ -757,10 +883,99 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].breath(duration, delay);
 		}
 	}
+	function renderFrame(context)
+	{
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var rotatepointer = this._animatePointerHash["rotate"];
+		var anchorpointer = this._animatePointerHash["anchor"];
+		var scalepointer = this._animatePointerHash["scale"];
+		var affinepointer = this._animatePointerHash["affine"];
+		var opacitypointer = this._animatePointerHash["opacity"];
+
+		
+		//
+		if (imagerecttranspointer != undefined)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
+		}
+		if (rotatepointer != undefined)
+		{
+			if (this._animatastack[rotatepointer] != undefined)
+			{
+				this._rotate = this._animatastack[rotatepointer].value;
+			}
+		}
+		if (anchorpointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[anchorpointer+i] != undefined)
+				{
+					this._anchor[i] = this._animatastack[anchorpointer+i].value;
+				}
+			}
+		}
+		if (scalepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[scalepointer+i] != undefined)
+				{
+					this._scale[i] = this._animatastack[scalepointer+i].value;
+				}
+			}
+		}
+		if (affinepointer != undefined)
+		{
+			for (var i = 0; i < 6; i++)
+			{
+				if (this._animatastack[affinepointer + i] != undefined)
+				{
+					if (this._animatastack[affinepointer + i].live == true)
+					{	
+						this._affine[i] = this._animatastack[affinepointer + i].value;
+					}
+				}
+			}
+		}
+		if (opacitypointer != undefined)
+		{
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
+		}
+		context.save();
+		context.globalAlpha = this._localAlpha;
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
+		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
+		context.restore();
+
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderFrame(context);
+			}
+		}
+	}
 	function renderFrameInImageRect(context)
 	{
 		var imagerecttranspointer = this._animatePointerHash["rect"];
-		var opacitypoint = this._animatePointerHash["opacity"];
+		var opacitypointer = this._animatePointerHash["opacity"];
 		//
 		if (imagerecttranspointer != undefined)
 		{
@@ -776,11 +991,11 @@ function indisObject(mask, img, live)
 			}
 		}
 
-		if (opacitypoint != undefined)
+		if (opacitypointer != undefined)
 		{
-			if (this._animatastack[opacitypoint].live == true)
+			if (this._animatastack[opacitypointer].live == true)
 			{
-				this._localAlpha = this._animatastack[opacitypoint].value;
+				this._localAlpha = this._animatastack[opacitypointer].value;
 			}
 		}
 		context.save();
@@ -802,7 +1017,7 @@ function indisObject(mask, img, live)
 	function renderFrameInMaskRect(context)
 	{
 		var imagerecttranspointer = this._animatePointerHash["rect"];
-		var opacitypoint = this._animatePointerHash["opacity"];
+		var opacitypointer = this._animatePointerHash["opacity"];
 		if (imagerecttranspointer != undefined)
 		{
 			for (var i = 0; i < 4; i++)
@@ -814,11 +1029,11 @@ function indisObject(mask, img, live)
 			}
 		}
 
-		if (opacitypoint != undefined)
+		if (opacitypointer != undefined)
 		{
-			if (this._animatastack[opacitypoint].live == true)
+			if (this._animatastack[opacitypointer].live == true)
 			{
-				this._localAlpha = this._animatastack[opacitypoint].value;
+				this._localAlpha = this._animatastack[opacitypointer].value;
 			}
 		}
 

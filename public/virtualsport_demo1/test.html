@@ -34,17 +34,20 @@
 	var indisEvOn;
 	$("document").ready()
 	{
-		indis_setrect(0, 0, 1280, 720, 256, 256);
-		indis_preload(document.body, function()
-		{
-			indis_sceneplayin();
-		});
+
 	}
 	$("body").on("tap", function(){
 		alert("oh yes");
 	});
 	$("#video0").on("ended", function(e){
 		$("#video0")[0].play();
+	});
+	$("#video0").on("loadeddata", function(e){
+		indis_setrect(0, 0, 1280, 720, 256, 256);
+		indis_preload(document.body, function()
+		{
+			indis_sceneplayin();
+		});
 	});
 	
 	//

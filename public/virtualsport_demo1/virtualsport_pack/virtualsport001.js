@@ -10,6 +10,7 @@ var renderer;
 var indisControllerObject;
 var pieces = [];
 var logo;
+
 var subtitle_bg;
 var subtitle_text;
 var piecespos = [[20, 20], [35, 50], [50, 80], [65, 110], [80, 140], [95, 170], [110, 140], [125, 110], [140, 80], [155, 50], [170, 20]];
@@ -20,6 +21,8 @@ var requestId;
 //
 var offscreen_rect = new jsRect();
 var scene_rect = new jsRect();
+//
+var mousecount = 0;
 //
 function indis_setrect(left, top, width, height, canvaswidth, canvasheight)
 {
@@ -53,16 +56,17 @@ function indis_playtext(text)
 {
 	canvas_text = document.createElement('canvas');
 	ctx_text = canvas_text.getContext('2d');
-	ctx_text.font="20px Arial";
+	ctx_text.font="14px Microsoft YaHei";
 	canvas_text.width = ctx_text.measureText(text).width;
-	canvas_text.height = 30;
+	canvas_text.height = 20;
 	
-	ctx_text.font="20px Arial";
-	ctx_text.fillStyle = "#FFFFFF";
-	ctx_text.fillText(text,0,canvas_text.height-10);
+	ctx_text.clearRect(0, 0, canvas_text.width, canvas_text.height);
+	ctx_text.font="14px Microsoft YaHei";
+	ctx_text.fillStyle = "#DDDDDD";
+	ctx_text.fillText(text,0,15);
 	subtitle_text.updateImage(canvas_text);
-	subtitle_text.easeIn(50, 0);
-	subtitle_text.transFromRectToRect(0, 150, canvas_text.width, canvas_text.height, 1280, 150, canvas_text.width, canvas_text.height, 500, 0);
+	subtitle_text.easeTo(0.85, 50, 0);
+	subtitle_text.transFromRectToRect(0, 113, 1.0*canvas_text.width, 1.0*canvas_text.height, 1280, 113, 1.0*canvas_text.width, 1.0*canvas_text.height,500, 0);
 	//
 }
 function indis_sceneanimate() 
@@ -72,6 +76,7 @@ function indis_sceneanimate()
 		pieces[i].animate();
 	}
 	logo.animate();
+
 	subtitle_bg.animate();
 	subtitle_text.animate();
 	//
@@ -103,7 +108,10 @@ function indis_initObjects(imgs)
 		pieces[j]  = new indisObject(null, imgs[0], false);
 	}
 	logo = new indisObject(null, imgs[1], false);
-	subtitle_bg = new indisObject(null, imgs[2], true);
+	logo_center = new indisObject(null, imgs[2], false);
+	logo.appendChildObject(logo_center, "independentChild");
+	//
+	subtitle_bg = new indisObject(null, imgs[3], true);
 	subtitle_text = new indisObject(null, imgs[1], false);
 }
 function indis_preload(parentNode, callback)
@@ -152,9 +160,9 @@ function indis_preload(parentNode, callback)
 						$("#canvas_scene").on("mouseup", onMouseEvent);
 						$("#canvas_scene").on("mousemove", onMouseEvent);
 					}
-					var hw = 180;
-					var hh = 40;
-					var anchor = new jsPoint(641, 417);
+					var hw = 213;
+					var hh = 45;
+					var anchor = new jsPoint(644, 432);
 					var points =   [[anchor.x - hw, anchor.y - hh],
 									  [anchor.x + hw, anchor.y - hh],
 									  [anchor.x - hw, anchor.y + hh],
@@ -204,10 +212,15 @@ function indis_sceneplayin()
 	
 		indisControllerObject.registor2Controller(pieces[i], "mousedown");
 	}
-	subtitle_bg.easeIn(1, 0);
-	subtitle_bg.transFromRectToRect(0,150, 1280, 36, 0, 150, 1280, 36, 1,0);
+	subtitle_bg.easeTo(1, 1, 0);
+	subtitle_bg.transFromRectToRect(0,0, 1280, 720, 0, 0, 1280, 720, 1,0);
+
 	logo.easeTo(0.5, 80, 0);
-	logo.transFromRectToRect(logo.imageNaturalwidth/2, logo.imageNaturalheight/2, 0, 0, 0, 0, logo.imageNaturalwidth, logo.imageNaturalheight, 30, 0)
+	logo.transFromRectToRect(logo.imageNaturalwidth/2, logo.imageNaturalheight/2, 0, 0, 0, 0, logo.imageNaturalwidth, logo.imageNaturalheight, 30, 0);
+	logo.setAnimateRootPointer(0);
+	logo.easeTo(0.5, 80, 0);
+	logo.transFromRectToRect(logo.imageNaturalwidth/2, logo.imageNaturalheight/2, 0, 0, 0, 0, logo.imageNaturalwidth, logo.imageNaturalheight, 30, 0);
+	logo.resetAnimateRootPointer();
 	//
 }
 var onMouseEvent = function(event) 
@@ -218,16 +231,39 @@ var onMouseEvent = function(event)
 	}
 	if (event.type == "mousedown")
 	{
-	
-		var x = event.clientX + window.pageXOffset;
-		var y = event.clientY + window.pageYOffset;
-		var pt = new jsPoint(x, y);
-		if(renderer.testObjectClick(pt))
+		if (mousecount == 0)
 		{
-			logo.easeTo(0, 40, 0);
-			logo.scaleTo(0.0, 0.0, 40, 0);
-			logo.rotate(Math.PI*4.0, 128, 128, 40, 0);
+			var x = event.clientX + window.pageXOffset;
+			var y = event.clientY + window.pageYOffset;
+			var pt = new jsPoint(x, y);
+			if(renderer.testObjectClick(pt))
+			{
+				logo.easeTo(0.0, 60, 25);
+				logo.rotate(-Math.PI/6.0, 128, 128, 15, 0);
+				logo.scaleTo(0.8, 0.8, 20, 15);
+				logo.scaleTo(0.0, 0.0, 10, 35);
+				logo.rotate(Math.PI*3.0, 128, 128, 15, 15);
+				logo.rotate(Math.PI*3.0, 128, 128, 10, 30);
+				//
+				logo.setAnimateRootPointer(0);
+				logo.easeTo(0, 60, 25);
+				logo.rotate(0.0, 128, 128, 40, 0);
+				logo.scaleTo(0.8, 0.8, 20, 15);
+				logo.scaleTo(0.0, 0.0, 10, 35);
+				logo.resetAnimateRootPointer();
+			}
 		}
+		else
+		{
+			logo.easeIn(0.5, 80, 0);
+			logo.transFromRectToRect(logo.imageNaturalwidth/2, logo.imageNaturalheight/2, 0, 0, 0, 0, logo.imageNaturalwidth, logo.imageNaturalheight, 30, 0);
+			logo.setAnimateRootPointer(0);
+			logo.easeTo(0.5, 80, 0);
+			logo.transFromRectToRect(logo.imageNaturalwidth/2, logo.imageNaturalheight/2, 0, 0, 0, 0, logo.imageNaturalwidth, logo.imageNaturalheight, 30, 0);
+			logo.resetAnimateRootPointer();
+		}
+		mousecount += 1;
+		mousecount = mousecount%2;
 	}
 }
 function onTouchEvent()

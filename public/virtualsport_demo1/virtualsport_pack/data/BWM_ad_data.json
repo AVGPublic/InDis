@@ -1,0 +1,7 @@
+{
+	"images":[
+	{"id":  "frag", "url": "virtualsport_demo1/virtualsport_pack/image/live_fragment.png"},
+	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/BMW-logo.png"},
+	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/BMW-logo-center.png"},
+	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/subtitle_bg.png"}
+]}

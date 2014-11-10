@@ -271,13 +271,14 @@ function animata()
 	}
 	//
 }
-function delayton(delay, animateobject)
+function delayton(delay, animateobject, pendingstates)
 {	
 	this.live = true;
 	this.aniobj = animateobject;
 	//
 	this._time = 0;
 	this._delay = delay;
+	this.pendingstates = pendingstates;
 	//
 	this.update = update;
 	function update()
@@ -507,11 +508,15 @@ function indisObject(mask, img, live)
 	{
 		if (delay != undefined && delay > 0)
 		{
-			var delayer = new delayton(delay, this);
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
+				var temp = this._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param, undefined);
+				this.aniobj._animaterootpointer = temp;
 			}
 			return;
 		}
@@ -604,14 +609,19 @@ function indisObject(mask, img, live)
 	{
 		if (delay != undefined && delay > 0)
 		{
-			var delayer = new delayton(delay, this);
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				this.aniobj.scaleTo(angle, duration, undefined);
+				var temp = this._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
+				this.aniobj.scaleTo(scalex, scaley, duration, undefined);
+				this.aniobj._animaterootpointer = temp;
 			}
 			return;
 		}
+		
 		if (this._animaterootpointer == -1)
 		{
 			this.live = true;
@@ -634,7 +644,7 @@ function indisObject(mask, img, live)
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, duration, delay);
+			this._animateIndependChildStack[this._animaterootpointer].scaleTo(scalex, scaley, duration, delay);
 		}
 		
 	}
@@ -642,11 +652,15 @@ function indisObject(mask, img, live)
 	{
 		if (delay != undefined && delay > 0)
 		{
-			var delayer = new delayton(delay, this);
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				this.aniobj.rotate(angle, duration, undefined);
+				var temp = this._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
+				this.aniobj.rotate(angle, anchorx, anchory, duration, undefined);
+				this.aniobj._animaterootpointer = temp;
 			}
 			return;
 		}
@@ -665,18 +679,22 @@ function indisObject(mask, img, live)
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, duration, delay);
+			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, anchorx, anchory, duration, delay);
 		}
 	}
 	function transToRect(left, top, width, height, duration, delay)
 	{
 		if (delay != undefined && delay > 0)
 		{
-			var delayer = new delayton(delay, this);
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				this.aniobj. transToRect(left, top, width, height, duration, undefined)
+				var temp = this._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
+				this.aniobj.transToRect(left, top, width, height, duration, undefined);
+				this.aniobj._animaterootpointer = temp;
 			}
 			return;
 		}
@@ -768,11 +786,15 @@ function indisObject(mask, img, live)
 	{
 		if (delay != undefined && delay > 0)
 		{
-			var delayer = new delayton(delay, this);
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
+				var temp = this._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.easeTo(value, duration, undefined);
+				this.aniobj._animaterootpointer = temp;
 			}
 			return;
 		}
@@ -791,7 +813,7 @@ function indisObject(mask, img, live)
 		}
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].easeIn(duration, delay);
+			this._animateIndependChildStack[this._animaterootpointer].easeTo(value, duration, delay);
 		}
 	}
 	function easeInHighlightEaseOut(duration, delay)

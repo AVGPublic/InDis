@@ -62,10 +62,10 @@ function indis_playtext(text)
 	
 	ctx_text.clearRect(0, 0, canvas_text.width, canvas_text.height);
 	ctx_text.font="14px Microsoft YaHei";
-	ctx_text.fillStyle = "#DDDDDD";
+	ctx_text.fillStyle = "#FFFFFF";
 	ctx_text.fillText(text,0,15);
 	subtitle_text.updateImage(canvas_text);
-	subtitle_text.easeTo(0.85, 50, 0);
+	subtitle_text.easeTo(0.95, 50, 0);
 	subtitle_text.transFromRectToRect(0, 113, 1.0*canvas_text.width, 1.0*canvas_text.height, 1280, 113, 1.0*canvas_text.width, 1.0*canvas_text.height,500, 0);
 	//
 }

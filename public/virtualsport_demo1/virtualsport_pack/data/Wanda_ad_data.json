@@ -3,5 +3,6 @@
 	{"id":  "frag", "url": "virtualsport_demo1/virtualsport_pack/image/live_fragment.png"},
 	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/Wanda-logo.png"},
 	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/Wanda-logo-center.png"},
-	{"id":  "logo", "url": "virtualsport_demo1/virtualsport_pack/image/subtitle_bg.png"}
+	{"id":  "gear", "url": "virtualsport_demo1/virtualsport_pack/image/gear.png"},
+	{"id":  "banner", "url": "virtualsport_demo1/virtualsport_pack/image/BWM_banner.png"}
 ]}

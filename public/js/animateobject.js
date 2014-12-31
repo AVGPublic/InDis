@@ -73,111 +73,25 @@ function indisEventStateMachine(num)
 		this.live[ID] = false;
 	}
 }
-
-//-------------dynamic system function lib-----------------//
-var dynamicSysFuncLib = (function (dynamicSysFuncLib) 
-{
-   dynamicSysFuncLib.attractorStringParam = 
-	{anchor: {x: 200, y: 100}, k: 0.001, nv: 0.04, dt: 1, pulse: {dv: 4.0, range: 80, da: 0.01}, imageCenter: {x: 16, y: 22}, id: undefined};
-   dynamicSysFuncLib.attractorStringDynamic = function(v1, v2, v3, param) 
-   {
-		var v1_, v2_, v3_;
-		if (param.id == "x")
-		{
-			a = v3 + -param.k*(v1 - param.anchor.x) - param.nv*v2;
-			v3_ = v3*param.pulse.da;
-			v2_ = v2 + param.dt*a;
-			v1_ = v1 + param.dt*v2_;
-			
-		}
-		else if (param.id == "y")
-		{
-			a = v3 + -param.k*(v1 - param.anchor.y) - param.nv*v2;
-			v3_ = v3*param.pulse.da;
-			v2_ = v2 + param.dt*a;
-			v1_ = v1 + param.dt*v2_;	
-		}
-		return {v1: v1_, v2: v2_, v3: v3_};
-   }
-   dynamicSysFuncLib.mouseRepulseEvent = function(v1, v2, v3, param, controlparam)
-   {
-		var v1_, v2_, v3_;
-
-		var dis = (controlparam.clientX - param.imageCenter.x - param.anchor.x)*(controlparam.clientX - param.imageCenter.x - param.anchor.x);
-			dis += (controlparam.clientY - param.imageCenter.y - param.anchor.y)*(controlparam.clientY - param.imageCenter.y - param.anchor.y);
-			dis = Math.sqrt(dis);
-		var ex = -(controlparam.clientX - param.imageCenter.x - param.anchor.x)/dis;
-		var ey = -(controlparam.clientY - param.imageCenter.y - param.anchor.y)/dis;
-		var deltav; 
-		if( dis > param.pulse.range)
-		{
-			deltav = 0;
-		}
-		else
-		{
-			deltav = param.pulse.dv*dis/param.pulse.range
-		}
-		if (param.id == "x")
-		{
-			v1_ = v1;
-			v2_ = v2;
-			v3_ = deltav*ex;
-		}
-		else if (param.id == "y")
-		{
-			v1_ = v1; 
-			v2_ = v2;
-			v3_ = deltav*ey;
-		}
-		
-		return {v1: v1_, v2: v2_, v3: v3_};
-   }
-   //
-   return dynamicSysFuncLib
-}(dynamicSysFuncLib || {}));
-//---------------------------------------------------------//
 //---------------mouse state and gesture-------------------//
 function indisController()
 {
-	this.mousedown = false;
 	//
 	this.animateObjects = [];
-	this.controlEvent = [];
-
-	this.registor2Controller = registor2Controller;
+	//
+	this.registorObject2MouseEvent = registorObject2MouseEvent;
 	this.onMouseEvent = onMouseEvent;
-	function registor2Controller(animateobject, event)
+	//
+	function registorObject2MouseEvent(animateobject, MouseEventFunction)
 	{
+		animateobject.onMouseEvent = MouseEventFunction;
 		this.animateObjects.push(animateobject);
-		this.controlEvent.push(event);
 	}
 	function onMouseEvent(event)
 	{
-		if (event.type == "mousedown" || event.type == "touchstart")
+		for(var i = 0; i < this.animateObjects.length; i++)
 		{
-			this.mousedown = true;
-		}
-		else 
-		if (event.type == "mouseup" ||  event.type == "touchend")
-		{
-			this.mousedown = false;
-		}
-		if (this.mousedown)
-		{
-			if ("ontouchstart" in window) 
-			{
-				for(var i = 0; i < this.controlEvent.length; i++)
-				{
-					this.animateObjects[i].onControlEvent(event.originalEvent.touches[0]);
-				}
-			}
-			else
-			{
-				for(var i = 0; i < this.controlEvent.length; i++)
-				{
-					this.animateObjects[i].onControlEvent(event);
-				}
-			}
+			this.animateObjects[i].onMouseEvent(event);
 		}
 	}
 }
@@ -236,7 +150,7 @@ function animata()
 				{
 					inrange = true;
 	
-					prog = (this.timekey[i] != this.timekey[i-1])?(this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]):0;
+					prog = (this.timekey[i] != this.timekey[i-1])?(this.time - this.timekey[i-1])/(this.timekey[i] - this.timekey[i-1]):1;
 					this.value = this.values[i-1]*(1-prog) + this.values[i]*prog;
 					break;
 				}
@@ -347,6 +261,11 @@ function indisObject(mask, img, live)
 	this.autodeath = false;
 	this.onClickAction = "NULL";
 	//
+	this.state = 0;
+	//
+	this.imageCSSwidth = 0;
+	this.imageCSSheight = 0;
+	//
 	if (img != null)
 	{
 		this._image = img;
@@ -369,12 +288,15 @@ function indisObject(mask, img, live)
 	}
 	//
 	this._mask = [];
+	this._withMask;
 	if (mask != null)
 	{
+		this._withMask = true;
 		this._mask = mask;
 	}
 	else
 	{
+		this._withMask = false;
 		this._mask.push(new jsPoint(0, 0));
 		this._mask.push(new jsPoint(this._image.width, 0));
 		this._mask.push(new jsPoint(this._image.width,this._image.height));
@@ -386,13 +308,18 @@ function indisObject(mask, img, live)
 	this._rect[1] = 0;
 	this._rect[2] = this.imageCSSwidth;
 	this._rect[3] = this.imageCSSheight;
+	//
+	this.external_x = 0;
+	this.external_y = 0;
 	
+	//
 	this._localAlpha = 0;
 	
 	this._affine = [1, 0, 0, 1, 0, 0]; //scalex, tiltx, tilty, scaley, transferx, transfery
 	this._rotate = 0;
 	this._anchor = [0, 0];
 	this._scale = [1, 1];
+	this._translate = [0, 0];
 	//
 	this._animatePointerHash = [];
 	this._animatastack = [];
@@ -410,29 +337,27 @@ function indisObject(mask, img, live)
 	this.appendChildObject = appendChildObject;
 	this.transToRect = transToRect;
 	this.transFromRectToRect = transFromRectToRect;
-	this.transFromRectToRectBounce = transFromRectToRectBounce;
 	this.rotate = rotate;
+	this.moveTo = moveTo;
 	this.scaleTo = scaleTo;
 	this.easeTo = easeTo;
 	this.easeIn = easeIn;
 	this.easeOut = easeOut;
-	this.easeInHighlightEaseOut = easeInHighlightEaseOut;
-	this.breath = breath;
 	this.animate = animate;
 	this.renderFrame = renderFrame;
+	this.renderFrameInMask = renderFrameInMask;
 	this.renderImage = renderImage;
-	this.renderFrameInImageRect = renderFrameInImageRect;
-	this.renderFrameInMaskRect = renderFrameInMaskRect;
 	this.renderMask = renderMask;
 	this.setTopleft = setTopleft;
 	this.testObjectClick = testObjectClick;
-	this.testObjectClickReturnAction = testObjectClickReturnAction;
 	this.testStaticMaskClick = testStaticMaskClick;
 	this.updateImage = updateImage;
 	this.updateMask = updateMask;
 	//
 	this.registorDynamicBehavior = registorDynamicBehavior;
 	this.onControlEvent = onControlEvent;
+	//
+	this.onMouseEvent = undefined;
 	//
 	function animate()
 	{
@@ -470,6 +395,14 @@ function indisObject(mask, img, live)
 		this.imageCSSheight = this._image.height;
 		this.imageNaturalwidth = this._image.naturalWidth;
 		this.imageNaturalheight = this._image.naturalHeight;
+		if (!this._withMask)
+		{
+			this._mask.length = 0;
+			this._mask.push(new jsPoint(0, 0));
+			this._mask.push(new jsPoint(this._image.width, 0));
+			this._mask.push(new jsPoint(this._image.width,this._image.height));
+			this._mask.push(new jsPoint(0, this._image.height));
+		}
 	}
 	function updateMask(mask)
 	{
@@ -494,13 +427,13 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack.push(child);
 		}
 	}
-	function onControlEvent(event)
+	function onControlEvent(param)
 	{
 		for(var i = 0; i < this._controlstack.length; i++)
 		{
 			if (this._animatastack[this._controlstack[i]] != -1 && this._animatastack[this._controlstack[i]] != undefined)
 			{
-				this._animatastack[this._controlstack[i]].onControlEvent(event);
+				this._animatastack[this._controlstack[i]].onControlEvent(param);
 			}
 		}
 	}
@@ -513,7 +446,7 @@ function indisObject(mask, img, live)
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				var temp = this._animaterootpointer;
+				var temp = this.aniobj._animaterootpointer;
 				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.registorDynamicBehavior(variable, dynamicSysUpdateFunc, controlEventFunc, param, undefined);
 				this.aniobj._animaterootpointer = temp;
@@ -550,61 +483,6 @@ function indisObject(mask, img, live)
 			}
 		}
 	}
-	function transFromRectToRectBounce(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay)
-	{
-		if (this._animaterootpointer == -1)
-		{
-			this.live = true;
-			this._animatePointerHash["rect"] = this._animatastack.length;
-			
-			var ani = [];
-			ani[0] = new animata();
-			ani[0].live = true;
-			ani[0].time = 0;
-			
-			ani[0].timekey.push(0); ani[0].values.push(left1); 
-			ani[0].timekey.push(delay); ani[0].values.push(left1); 
-			ani[0].timekey.push(delay+0.7*duration); ani[0].values.push(left2 + 0.2*(left2 - left1));
-			ani[0].timekey.push(delay+0.9*duration); ani[0].values.push(left2 - 0.1*(left2 - left1));
-			ani[0].timekey.push(delay+duration); ani[0].values.push(left2);
-			this._animatastack.push(ani[0]);
-
-			ani[1] = new animata();
-			ani[1].live = true;
-			ani[1].time = 0;
-			ani[1].timekey.push(0); ani[0].values.push(top1);
-			ani[1].timekey.push(delay); ani[1].values.push(top1); 
-			ani[1].timekey.push(delay+0.7*duration); ani[1].values.push(top2 + 0.2*(top2 - top1));
-			ani[1].timekey.push(delay+0.9*duration); ani[1].values.push(top2 - 0.1*(top2 - top1));
-			ani[1].timekey.push(delay+duration); ani[1].values.push(top2);
-			this._animatastack.push(ani[1]);
-
-			ani[2] = new animata();
-			ani[2].live = true;
-			ani[2].time = 0;
-			ani[2].timekey.push(0); ani[2].values.push(width1); 
-			ani[2].timekey.push(delay); ani[2].values.push(width1); 
-			ani[2].timekey.push(delay+0.7*duration); ani[2].values.push(width2 + 0.2*(width2 - width1));
-			ani[2].timekey.push(delay+0.9*duration); ani[2].values.push(width2 - 0.1*(width2 - width1));
-			ani[2].timekey.push(delay+duration); ani[2].values.push(width2); 
-
-			this._animatastack.push(ani[2]);
-
-			ani[3] = new animata();
-			ani[3].live = true;
-			ani[3].time = 0;
-			ani[3].timekey.push(0); ani[3].values.push(height1); 
-			ani[3].timekey.push(delay); ani[3].values.push(height1); 
-			ani[3].timekey.push(delay+0.7*duration); ani[3].values.push(height2 + 0.2*(height2 - height1));
-			ani[3].timekey.push(delay+0.9*duration); ani[3].values.push(height2 - 0.1*(height2 - height1));
-			ani[3].timekey.push(delay+duration); ani[3].values.push(height2);
-			this._animatastack.push(ani[3]);
-		}
-		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
-		{
-			this._animateIndependChildStack[this._animaterootpointer].transFromRectToRect(left1, top1, width1, height1, left2, top2, width2, height2, duration, delay);
-		}
-	}
 	function scaleTo(scalex, scaley, duration, delay)
 	{
 		if (delay != undefined && delay > 0)
@@ -614,7 +492,7 @@ function indisObject(mask, img, live)
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				var temp = this._animaterootpointer;
+				var temp = this.aniobj._animaterootpointer;
 				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.scaleTo(scalex, scaley, duration, undefined);
 				this.aniobj._animaterootpointer = temp;
@@ -646,7 +524,50 @@ function indisObject(mask, img, live)
 		{
 			this._animateIndependChildStack[this._animaterootpointer].scaleTo(scalex, scaley, duration, delay);
 		}
+	}
+	function moveTo(x, y, duration, delay)
+	{
+		if (delay != undefined && delay > 0)
+		{
+			var pendingstates = {"animaterootpointer": this._animaterootpointer};
+			var delayer = new delayton(delay, this, pendingstates);
+			this._delaytack.push(delayer);
+			delayer.ondelayed = function()
+			{
+				var temp = this.aniobj._animaterootpointer;
+				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
+				this.aniobj.moveTo(x, y, duration, undefined);
+				this.aniobj._animaterootpointer = temp;
+			}
+			return;
+		}
 		
+		if (this._animaterootpointer == -1)
+		{
+			this.live = true;
+			this._animatePointerHash["translate"] = this._animatastack.length;
+
+			var ani = [];
+			ani[0] = new animata();
+			ani[0].live = true;
+			ani[0].value = this._translate[0];
+			ani[0].time = 0;
+			ani[0].timekey.push(0); ani[0].values.push(this._translate[0]); 
+			ani[0].timekey.push(duration); ani[0].values.push(x);
+			this._animatastack.push(ani[0]);
+
+			ani[1] = new animata();
+			ani[1].live = true;
+			ani[1].value = this._translate[1];
+			ani[1].time = 0;
+			ani[1].timekey.push(0); ani[1].values.push(this._translate[1]); 
+			ani[1].timekey.push(duration); ani[1].values.push(y);
+			this._animatastack.push(ani[1]);
+		}
+		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		{
+			this._animateIndependChildStack[this._animaterootpointer].moveTo(x, y, duration, delay);
+		}
 	}
 	function rotate(angle, anchorx, anchory, duration, delay)
 	{
@@ -657,7 +578,7 @@ function indisObject(mask, img, live)
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				var temp = this._animaterootpointer;
+				var temp = this.aniobj._animaterootpointer;
 				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.rotate(angle, anchorx, anchory, duration, undefined);
 				this.aniobj._animaterootpointer = temp;
@@ -691,7 +612,7 @@ function indisObject(mask, img, live)
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				var temp = this._animaterootpointer;
+				var temp = this.aniobj._animaterootpointer;
 				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.transToRect(left, top, width, height, duration, undefined);
 				this.aniobj._animaterootpointer = temp;
@@ -791,7 +712,7 @@ function indisObject(mask, img, live)
 			this._delaytack.push(delayer);
 			delayer.ondelayed = function()
 			{
-				var temp = this._animaterootpointer;
+				var temp = this.aniobj._animaterootpointer;
 				this.aniobj._animaterootpointer = this.pendingstates.animaterootpointer;
 				this.aniobj.easeTo(value, duration, undefined);
 				this.aniobj._animaterootpointer = temp;
@@ -814,30 +735,6 @@ function indisObject(mask, img, live)
 		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
 		{
 			this._animateIndependChildStack[this._animaterootpointer].easeTo(value, duration, delay);
-		}
-	}
-	function easeInHighlightEaseOut(duration, delay)
-	{
-		if (this._animaterootpointer == -1)
-		{
-			this.live = true;
-			this.autodeath = true;
-			this._animatePointerHash["opacity"] = this._animatastack.length;
-			//
-			var ani = new animata();
-			ani.live = true;
-			ani.time = 0;
-			ani.timekey.push(0); ani.values.push(0); 
-			ani.timekey.push(delay); ani.values.push(0); 
-			ani.timekey.push(delay+0.45*duration); ani.values.push(0.4); 
-			ani.timekey.push(delay+0.5*duration); ani.values.push(1);
-			ani.timekey.push(delay+0.55*duration); ani.values.push(0.4);
-			ani.timekey.push(delay+duration); ani.values.push(0);
-			this._animatastack.push(ani);
-		}
-		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
-		{
-			this._animateIndependChildStack[this._animaterootpointer].easeInHighlightEaseOut(duration, delay);
 		}
 	}
 	function easeIn(duration, delay)
@@ -882,28 +779,39 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].easeOut(duration, delay);
 		}
 	}
-	function breath(duration, delay)
+	function changeCanvas(canvas)
 	{
-		if (this._animaterootpointer == -1)
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var opacitypointer = this._animatePointerHash["opacity"];
+		if (imagerecttranspointer != undefined)
 		{
-			this.live = true;
-			this._animatePointerHash["opacity"] = this._animatastack.length;
-			//
-			this.autodeath = true;
-			var ani = new animata();
-			ani.live = true;
-			ani.time = 0;
-			ani.timekey.push(0);  ani.values.push(0);
-			ani.timekey.push(delay);  ani.values.push(0);
-			ani.timekey.push(delay+0.45*duration);  ani.values.push(1.0);
-			ani.timekey.push(delay+0.55*duration);  ani.values.push(1.0);
-			ani.timekey.push(delay+1.0*duration);  ani.values.push(0);
-			this._animatastack.push(ani);
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
 		}
-		else if (this._animateIndependChildStack[this._animaterootpointer] != undefined)
+		if (opacitypointer != undefined)
 		{
-			this._animateIndependChildStack[this._animaterootpointer].breath(duration, delay);
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
 		}
+		canvas.width = scene_rect.w;
+		canvas.height = scene_rect.h;
+		strTop = scene_rect.y + "px";
+		strLeft = scene_rect.x + "px";
+		canvas.style.top = strTop;
+		canvas.style.left = strLeft;
+		//
+		canvas.style.opacity = this._localAlpha;
+
 	}
 	function renderFrame(context)
 	{
@@ -911,9 +819,114 @@ function indisObject(mask, img, live)
 		var rotatepointer = this._animatePointerHash["rotate"];
 		var anchorpointer = this._animatePointerHash["anchor"];
 		var scalepointer = this._animatePointerHash["scale"];
+		var translatepointer = this._animatePointerHash["translate"];
 		var affinepointer = this._animatePointerHash["affine"];
 		var opacitypointer = this._animatePointerHash["opacity"];
+		//
+		if (imagerecttranspointer != undefined)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
+		}
+		if (rotatepointer != undefined)
+		{
+			if (this._animatastack[rotatepointer] != undefined)
+			{
+				this._rotate = this._animatastack[rotatepointer].value;
+			}
+		}
+		if (anchorpointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[anchorpointer+i] != undefined)
+				{
+					this._anchor[i] = this._animatastack[anchorpointer+i].value;
+				}
+			}
+		}
+		if (scalepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[scalepointer+i] != undefined)
+				{
+					this._scale[i] = this._animatastack[scalepointer+i].value;
+				}
+			}
+		}
+		if (translatepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[translatepointer+i] != undefined)
+				{
+					this._translate[i] = this._animatastack[translatepointer+i].value;
+				}
+			}
+			if (this.id == "banner" && this.state == 2 && this._translate[1] == 0)
+			{
+				var test = this._animatastack[translatepointer+1];
+			}
+		}
+		if (affinepointer != undefined)
+		{
+			for (var i = 0; i < 6; i++)
+			{
+				if (this._animatastack[affinepointer + i] != undefined)
+				{
+					if (this._animatastack[affinepointer + i].live == true)
+					{	
+						this._affine[i] = this._animatastack[affinepointer + i].value;
+					}
+				}
+			}
+		}
+		if (opacitypointer != undefined)
+		{
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
+		}
 
+		context.save();
+		context.globalAlpha = this._localAlpha;
+		context.translate(this._translate[0], this._translate[1]);
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
+		context.drawImage(this._image, this.external_x + this._rect[0], this.external_y + this._rect[1], this._rect[2], this._rect[3]);
+		context.restore();
+
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderFrame(context);
+			}
+		}
+	}
+
+	function renderFrameInMask(context)
+	{
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var rotatepointer = this._animatePointerHash["rotate"];
+		var anchorpointer = this._animatePointerHash["anchor"];
+		var scalepointer = this._animatePointerHash["scale"];
+		var translatepointer = this._animatePointerHash["translate"];
+		var affinepointer = this._animatePointerHash["affine"];
+		var opacitypointer = this._animatePointerHash["opacity"];
 		
 		//
 		if (imagerecttranspointer != undefined)
@@ -956,6 +969,16 @@ function indisObject(mask, img, live)
 				}
 			}
 		}
+		if (translatepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[translatepointer+i] != undefined)
+				{
+					this._translate[i] = this._animatastack[translatepointer+i].value;
+				}
+			}
+		}
 		if (affinepointer != undefined)
 		{
 			for (var i = 0; i < 6; i++)
@@ -976,88 +999,6 @@ function indisObject(mask, img, live)
 				this._localAlpha = this._animatastack[opacitypointer].value;
 			}
 		}
-		context.save();
-		context.globalAlpha = this._localAlpha;
-		context.translate(this._anchor[0], this._anchor[1]);
-		context.rotate(this._rotate);
-		context.scale(this._scale[0], this._scale[1]);
-		context.translate(-this._anchor[0], -this._anchor[1]);
-		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
-		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
-		context.restore();
-
-		for (var i = 0; i < this._animateIndependChildStack.length; i++)
-		{
-			if (this._animateIndependChildStack[i].live)
-			{
-				this._animateIndependChildStack[i].renderFrame(context);
-			}
-		}
-	}
-	function renderFrameInImageRect(context)
-	{
-		var imagerecttranspointer = this._animatePointerHash["rect"];
-		var opacitypointer = this._animatePointerHash["opacity"];
-		//
-		if (imagerecttranspointer != undefined)
-		{
-			for (var i = 0; i < 4; i++)
-			{
-				if (this._animatastack[imagerecttranspointer + i] != undefined)
-				{
-					if (this._animatastack[imagerecttranspointer + i].live == true)
-					{	
-						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
-					}
-				}
-			}
-		}
-
-		if (opacitypointer != undefined)
-		{
-			if (this._animatastack[opacitypointer].live == true)
-			{
-				this._localAlpha = this._animatastack[opacitypointer].value;
-			}
-		}
-		context.save();
-		context.globalAlpha = this._localAlpha;
-		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
-		context.restore();
-
-		//this._staticChildStack[0].sketchObjectRespondingRegion(this._rect, context);
-
-		for (var i = 0; i < this._animateIndependChildStack.length; i++)
-		{
-			if (this._animateIndependChildStack[i].live)
-			{
-				this._animateIndependChildStack[i].renderFrameInImageRect(context);
-			}
-		}
-	}
-
-	function renderFrameInMaskRect(context)
-	{
-		var imagerecttranspointer = this._animatePointerHash["rect"];
-		var opacitypointer = this._animatePointerHash["opacity"];
-		if (imagerecttranspointer != undefined)
-		{
-			for (var i = 0; i < 4; i++)
-			{
-				if (this._animatastack[imagerecttranspointer + i].live == true)
-				{	
-					this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
-				}
-			}
-		}
-
-		if (opacitypointer != undefined)
-		{
-			if (this._animatastack[opacitypointer].live == true)
-			{
-				this._localAlpha = this._animatastack[opacitypointer].value;
-			}
-		}
 
 		context.beginPath();
 		context.moveTo(this._mask[0].x, this._mask[0].y);
@@ -1070,6 +1011,12 @@ function indisObject(mask, img, live)
 		context.closePath();
 		context.save();
 		context.globalAlpha = this._localAlpha;
+		context.translate(this._translate[0], this._translate[1]);
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
 		context.clip();
 		context.drawImage(this._image, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
 		context.restore();
@@ -1102,36 +1049,6 @@ function indisObject(mask, img, live)
 			this._mask[j].y += top;
 		}
 	}
-	function testObjectClickReturnAction(pt)
-	{
-		var mask = [];
-		var fx = this._rect[2]/this.imageCSSwidth;
-		var fy = this._rect[3]/this.imageCSSheight;
-
-		for (var i = 0; i < this._mask.length; i++)
-		{
-			mask.push(new jsPoint(this._rect[0] + fx*this._mask[i].x, this._rect[1] + fy*this._mask[i].y)); 
-		}
-		if (!isPointInPoly(mask, pt))
-		{
-			return "NULL";
-		}
-		if (this.onClickAction != "NULL")
-		{
-			return this.onClickAction;
-		}
-		else
-		{
-			for (var i = 0; i < this._staticChildStack.length; i++)
-			{
-				if (this._staticChildStack[i].testObjectClick(this._rect, pt))
-				{
-					return this._staticChildStack[i].onClickParentAction;
-				}
-			}
-		}
-		return "NULL";
-	}
 	function testObjectClick(pt)
 	{
 		if(this.live == false)
@@ -1162,3 +1079,78 @@ function indisObject(mask, img, live)
 	}
 }
 //---------------------------------------------------------//
+//---------------scroller animation -----------------------//
+function indisScroller(heightMax, marginBottomMax)
+{
+	this._heightMax = heightMax;
+	this._marginBottomMax = marginBottomMax;
+	this._height = 0;
+	this._marginbottom = 0;
+	this._animatas = [];
+	this.live = false;
+	
+	this.animate = animate;
+	this.playIn = playIn;
+	this.playOut = playOut;
+	this.getHeight = getHeight;
+	this.getMarginBottom = getMarginBottom;
+	
+	function animate()
+	{
+		var somethingalive = false;
+		for (var i = 0; i < 2; i++)
+		{
+			if (this._animatas[i].live)
+			{
+				somethingalive = true;
+				this._animatas[i].update();
+			}
+		}
+		this._height = this._animatas[0].value;
+		this._marginbottom = this._animatas[1].value;
+		if (!somethingalive)
+		{
+			this.live = false;
+		}
+	}
+	function playIn(duration)
+	{
+		this.live = true;
+		
+		this._animatas[0] = new animata();
+		this._animatas[0].live = true;
+		this._animatas[0].time = 0;
+		this._animatas[0].timekey.push(0); this._animatas[0].values.push(0); 
+		this._animatas[0].timekey.push(duration); this._animatas[0].values.push(this._heightMax); 
+		
+		this._animatas[1] = new animata();
+		this._animatas[1].live = true;
+		this._animatas[1].time = 0;
+		this._animatas[1].timekey.push(0); this._animatas[1].values.push(0); 
+		this._animatas[1].timekey.push(duration); this._animatas[1].values.push(this._marginBottomMax); 
+	}
+	function playOut(duration)
+	{
+		this.live = true;
+			
+		this._animatas[0] = new animata();
+		this._animatas[0].live = true;
+		this._animatas[0].time = 0;
+		this._animatas[0].timekey.push(0); this._animatas[0].values.push(this._heightMax); 
+		this._animatas[0].timekey.push(duration); this._animatas[0].values.push(0); 
+		
+		this._animatas[1] = new animata();
+		this._animatas[1].live = true;
+		this._animatas[1].time = 0;
+		this._animatas[1].timekey.push(0); this._animatas[1].values.push(this._marginBottomMax); 
+		this._animatas[1].timekey.push(duration); this._animatas[1].values.push(0); 
+	}
+	function getHeight()
+	{
+		return this._height;
+	}
+	function getMarginBottom()
+	{
+		return this._marginbottom;
+	}
+}

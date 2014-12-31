@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
+
 	<head>
 		<script src="js/jquery-1.8.3.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
@@ -10,46 +11,57 @@
 		<link href="virtualsport_demo1/virtualsport_pack/virtualsport001.css" rel="stylesheet">
 
 		<style>
-		  * { margin: 0; padding: 0; box-sizing: border-box; }
-		  body { font: 13px Helvetica, Arial; }
+		  //* { margin: auto; padding: 0; box-sizing: border-box; }
+		  body { font: 13px Helvetica, Arial;}
 		  form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
 		  form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
 		  form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-		  #messages { list-style-type: none; margin: 0; padding: 0; }
-		  #messages li { padding: 5px 10px; }
-		  #messages li:nth-child(odd) { background: #eee; }
+		  #video0{z-index:-1;}
 		</style>
 	</head>
-	<body>
-		<video id= "video0" controls autoplay width=1280 height=720>
+	<body id = "test">
+		<video id= "video0" controls autoplay muted width=960 height=540>
+			<source src="virtualsport_demo1/virtualsport_pack/video/footballopen.ogv" type='video/ogg; codecs="theora, vorbis"'/>
+			<source src="virtualsport_demo1/virtualsport_pack/video/footballopen.webm" type='video/webm' >
 			<source src="virtualsport_demo1/virtualsport_pack/video/footballopen.mp4" type='video/mp4'>
 			<p>Video is not visible, most likely your browser does not support HTML5 video</p>
 		</video>
-		<ul id="messages"></ul>
-			<form action="">
-			<input id="m" autocomplete="off" /><button>Send</button>
+		<form action="">
+				<input id="m" autocomplete="off" /><button>Send</button>
 		</form>
 	</body>
 	<script> 
 	var indisEvOn;
-	$("document").ready()
-	{
-
-	}
-	$("body").on("tap", function(){
-		alert("oh yes");
-	});
 	$("#video0").on("ended", function(e){
 		$("#video0")[0].play();
 	});
 	$("#video0").on("loadeddata", function(e){
-		indis_setrect(0, 0, 1280, 720, 256, 256);
+		var top = $("#video0").position().top;
+		var left =  $("#video0").position().left;
+		indis_setrect(left, top, 960, 540, 256, 256);
+		indis_setvideo(this);
 		indis_preload(document.body, function()
 		{
 			indis_sceneplayin();
 		});
+		$("#video0").css("z-index", -1);
 	});
-	
+	$("document").ready()
+	{
+	}
+
+	if ("ontouchstart" in window) 
+	{
+		$("#video0").on("touchstart", indisOnMouseEvent);
+		$("#video0").on("touchmove", indisOnMouseEvent);
+		$("#video0").on("touchend", indisOnMouseEvent);
+	} 
+	else 
+	{
+		$("#video0").on("mousedown", indisOnMouseEvent);
+		$("#video0").on("mouseup", indisOnMouseEvent);
+		$("#video0").on("mousemove", indisOnMouseEvent);
+	}
 	//
 	var socket = io();
 	$('form').submit(function(){
@@ -60,5 +72,5 @@
 	socket.on('chat message', function(msg){
 		indis_playtext(msg);
 	});
-	</script> 
+	</script>
 </html>

@@ -34,6 +34,10 @@ app.get('/test', function(req, res){
   res.sendfile('public/virtualsport_demo1/test.html');
 });
 
+app.get('/test2', function(req, res){
+  res.sendfile('public/gameadv_demo1/test2.html');
+});
+
 app.get('/', function(req, res){
   res.sendfile('public/static/mainpage.html');
 });
@@ -44,6 +48,6 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(18080, function(){
+http.listen(80, function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

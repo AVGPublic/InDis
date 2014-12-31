@@ -1,0 +1,5 @@
+{
+	"images":[
+	{"id":  "frag", "url": "gameadv_demo1/gameadv_pack/image/live_fragment.png"},
+	{"id":  "box", "url": "gameadv_demo1/gameadv_pack/image/box.png"}
+]}

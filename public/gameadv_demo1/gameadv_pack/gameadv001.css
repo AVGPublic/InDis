@@ -1,0 +1,12 @@
+#video0
+{
+	padding: auto;
+}
+#canvas_scene
+{
+	position:absolute;
+	z-index: 0;
+	opacity: 1;
+	pointer-events: none;
+}
+

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+	<head>
+		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="js/Renderer3D.js"></script>
+		<script src="js/dynamicSysFuncLib.js"></script>
+		<script src="js/animateobject.js"></script>
+		<script src="gameadv_demo1/gameadv_pack/gameadv001.js"></script>
+		<link href="gameadv_demo1/gameadv_pack/gameadv001.css" rel="stylesheet">
+
+	</head>
+	<body id = "hostdiv">
+	</body>
+	<canvas id="anim">
+	</canvas>
+	<script> 
+	var indisEvOn;
+	$("document").ready()
+	{
+		indis_setrect($("#hostdiv").position().left, $("#hostdiv").position().top, 960, 540, 256, 256);
+		indis_preload(document.body, function(){
+				indis_sceneplayin();
+			});
+	}
+
+	if ("ontouchstart" in window) 
+	{
+		$("#hostdiv").on("touchstart", indisOnMouseEvent);
+		$("#hostdiv").on("touchmove", indisOnMouseEvent);
+		$("#hostdiv").on("touchend", indisOnMouseEvent);
+	} 
+	else 
+	{
+		$("#hostdiv").on("mousedown", indisOnMouseEvent);
+		$("#hostdiv").on("mouseup", indisOnMouseEvent);
+		$("#hostdiv").on("mousemove", indisOnMouseEvent);
+	}
+	//
+	</script>
+</html>

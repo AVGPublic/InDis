@@ -71,9 +71,8 @@ function indis_playtext(text)
 	ctx_text.fillText(text,0,20);
 	subtitle_text.updateImage(canvas_text);
 	subtitle_text.easeTo(0.95, 50, 0);
-	subtitle_text.external_x = 0; subtitle_text.external_y = 0;
 	//
-	var hpos =  banner._rect[1] + banner._rect[3] + banner.external_y - 25;
+	var hpos =  banner._rect[1] + banner._rect[3] - 25;
 	subtitle_text.transFromRectToRect(0, hpos, 1.0*canvas_text.width, 1.0*canvas_text.height, 1280, hpos, 1.0*canvas_text.width, 1.0*canvas_text.height,500, 0);
 	//
 }
@@ -84,6 +83,7 @@ function indis_sceneanimate()
 	logoformove.animate();
 	logo_gear.animate();
 	banner.animate();
+	banner.id = "banner";
 	//
 	subtitle_text.animate();
 	//
@@ -202,7 +202,7 @@ function onSourceLoaded(imgs, callback)
 					this.easeTo(0.0, 10, 75);
 					this.resetAnimateRootPointer();
 					//
-					banner.moveTo(0, 300, 40, 15);
+					banner.transToRect(0, 0, 960, 370, 30, 15);
 					//
 					this.state = 2;
 				}
@@ -222,7 +222,27 @@ function onSourceLoaded(imgs, callback)
 					this.easeTo(0.0, 30, 45);
 					this.resetAnimateRootPointer();
 					//
-					banner.moveTo(0, 0, 40, 15);
+					banner.transToRect(0, -305, 960, 370, 30, 15);
+					//
+					this.state = 3;
+				}
+			}
+			else if (this.state == 3)
+			{
+				if (logoformove.testObjectClick(pt))
+				{
+					this.rotate(Math.PI/6.0, 128, 128, 15, 0);
+					this.rotate(-Math.PI*10.0 - Math.PI/6.0, 128, 128, 40, 17);
+					//
+					this.setAnimateRootPointer(1);
+					this.easeTo(0.3, 60, 25);
+					this.scaleTo(0.8, 0.8, 0, 0);
+					this.rotate(Math.PI/6.0, 128, 128, 15, 0);
+					this.rotate(Math.PI*4.0 - Math.PI/6.0, 128, 128, 40, 15);
+					this.easeTo(0.0, 30, 45);
+					this.resetAnimateRootPointer();
+					//
+					banner.transToRect(0, -380, 960, 370, 30, 15);
 					//
 					this.state = 1;
 				}

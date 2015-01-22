@@ -1,12 +1,14 @@
-#video0
-{
-	padding: auto;
-}
 #canvas_scene
 {
 	position:absolute;
 	z-index: 0;
 	opacity: 1;
-	pointer-events: none;
 }
+#canvas_overlay
+{
+	position:absolute;
+	z-index: 10;
+	opacity: 1;
+}
+
 

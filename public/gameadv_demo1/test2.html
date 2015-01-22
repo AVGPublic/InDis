@@ -11,32 +11,33 @@
 		<link href="gameadv_demo1/gameadv_pack/gameadv001.css" rel="stylesheet">
 
 	</head>
-	<body id = "hostdiv">
+	<body>
+		<div id = "hostdiv">
+		</div>
 	</body>
-	<canvas id="anim">
-	</canvas>
 	<script> 
 	var indisEvOn;
 	$("document").ready()
 	{
-		indis_setrect($("#hostdiv").position().left, $("#hostdiv").position().top, 960, 540, 256, 256);
-		indis_preload(document.body, function(){
-				indis_sceneplayin();
+		indis_setrect2($("#hostdiv").position().left, $("#hostdiv").position().top, 560, 128, 256, 256);
+		indis_preload2(document.getElementById("hostdiv"), function(){
+				indis_sceneplayin2();
 			});
 	}
 
 	if ("ontouchstart" in window) 
 	{
-		$("#hostdiv").on("touchstart", indisOnMouseEvent);
-		$("#hostdiv").on("touchmove", indisOnMouseEvent);
-		$("#hostdiv").on("touchend", indisOnMouseEvent);
+		$("#hostdiv").on("touchstart", indisOnMouseEvent2);
+		$("#hostdiv").on("touchmove", indisOnMouseEvent2);
+		$("#hostdiv").on("touchend", indisOnMouseEvent2);
 	} 
 	else 
 	{
-		$("#hostdiv").on("mousedown", indisOnMouseEvent);
-		$("#hostdiv").on("mouseup", indisOnMouseEvent);
-		$("#hostdiv").on("mousemove", indisOnMouseEvent);
+		$("#hostdiv").on("mousedown", indisOnMouseEvent2);
+		$("#hostdiv").on("mouseup", indisOnMouseEvent2);
+		$("#hostdiv").on("mousemove", indisOnMouseEvent2);
 	}
+	$(document).mouseup(indisMouseUp2);
 	//
 	</script>
 </html>

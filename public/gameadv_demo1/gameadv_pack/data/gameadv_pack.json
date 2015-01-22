@@ -1,5 +1,27 @@
 {
 	"images":[
-	{"id":  "frag", "url": "gameadv_demo1/gameadv_pack/image/live_fragment.png"},
-	{"id":  "box", "url": "gameadv_demo1/gameadv_pack/image/box.png"}
-]}
+	{"id":  "box", "url": "gameadv_demo1/gameadv_pack/image/box.png"},
+	{"id":  "box", "url": "gameadv_demo1/gameadv_pack/image/box2.png"},
+	{"id":  "minion1", "url": "gameadv_demo1/gameadv_pack/image/minion1.png"},
+	{"id":  "minion2", "url": "gameadv_demo1/gameadv_pack/image/minion2.png"},
+	{"id":  "minion3", "url": "gameadv_demo1/gameadv_pack/image/minion3.png"},
+	{"id":  "minion4", "url": "gameadv_demo1/gameadv_pack/image/minion4.png"}
+	],
+	"layout":[
+		{"x": 30, "y": 100, "size": 0.8},
+		{"x": 60, "y": 80, "size": 0.8},
+		{"x": 90, "y": 60, "size": 0.8},
+		{"x": 120, "y": 30, "size": 0.8},
+		{"x": 150, "y": 30, "size": 0.8},
+		{"x": 180, "y": 35, "size": 0.8},
+		{"x": 210, "y": 40, "size": 0.8},
+		{"x": 240, "y": 45, "size": 0.8},
+		{"x": 270, "y": 50, "size": 0.8},
+		{"x": 300, "y": 58, "size": 0.8},
+		{"x": 330, "y": 66, "size": 0.8},
+		{"x": 360, "y": 72, "size": 0.8},
+		{"x": 390, "y": 62, "size": 0.9},
+		{"x": 420, "y": 50, "size": 1.0},
+		{"x": 450, "y": 42, "size": 1.2}
+	]
+}

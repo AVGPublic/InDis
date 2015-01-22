@@ -204,13 +204,11 @@ function delayton(delay, animateobject, pendingstates)
 			this.ondelayed();
 		}
 	}
-
 }
+
 //
 function staticObject(left, top, width, height, parentwidth, parentheight)
 {
-	this.onClickParentAction = "close";
-	//
 	this._rect = [];
 	this._rect[0] = left/parentwidth;
 	this._rect[1] = top/parentheight;
@@ -262,6 +260,7 @@ function indisObject(mask, img, live)
 	this.onClickAction = "NULL";
 	//
 	this.state = 0;
+	this.mousestate = 0;
 	//
 	this.imageCSSwidth = 0;
 	this.imageCSSheight = 0;
@@ -337,6 +336,7 @@ function indisObject(mask, img, live)
 	this.appendChildObject = appendChildObject;
 	this.transToRect = transToRect;
 	this.transFromRectToRect = transFromRectToRect;
+	this.setRect = setRect;
 	this.rotate = rotate;
 	this.moveTo = moveTo;
 	this.scaleTo = scaleTo;
@@ -603,6 +603,13 @@ function indisObject(mask, img, live)
 			this._animateIndependChildStack[this._animaterootpointer].rotate(angle, anchorx, anchory, duration, delay);
 		}
 	}
+	function setRect(left, top, width, height)
+	{
+		this._rect[0] = left;
+		this._rect[1] = top;
+		this._rect[2] = width;
+		this._rect[3] = height;
+	}
 	function transToRect(left, top, width, height, duration, delay)
 	{
 		if (delay != undefined && delay > 0)
@@ -623,11 +630,12 @@ function indisObject(mask, img, live)
 		{
 			this.live = true;
 			this._animatePointerHash["rect"] = this._animatastack.length;
-			
+					
 			var ani = [];
 			ani[0] = new animata();
 			ani[0].live = true;
 			ani[0].time = 0;
+			ani[0].value = this._rect[0];
 			ani[0].timekey.push(0); ani[0].values.push(this._rect[0]); 
 			ani[0].timekey.push(duration); ani[0].values.push(left);
 			this._animatastack.push(ani[0]);
@@ -635,6 +643,7 @@ function indisObject(mask, img, live)
 			ani[1] = new animata();
 			ani[1].live = true;
 			ani[1].time = 0;
+			ani[1].value = this._rect[1];
 			ani[1].timekey.push(0); ani[1].values.push(this._rect[1]); 
 			ani[1].timekey.push(duration); ani[1].values.push(top);
 			this._animatastack.push(ani[1]);
@@ -642,6 +651,7 @@ function indisObject(mask, img, live)
 			ani[2] = new animata();
 			ani[2].live = true;
 			ani[2].time = 0;
+			ani[2].value = this._rect[2];
 			ani[2].timekey.push(0); ani[2].values.push(this._rect[2]); 
 			ani[2].timekey.push(duration); ani[2].values.push(width);
 			this._animatastack.push(ani[2]);
@@ -649,6 +659,7 @@ function indisObject(mask, img, live)
 			ani[3] = new animata();
 			ani[3].live = true;
 			ani[3].time = 0;
+			ani[3].value = this._rect[3];
 			ani[3].timekey.push(0); ani[3].values.push(this._rect[3]); 
 			ani[3].timekey.push(duration); ani[3].values.push(height);
 			this._animatastack.push(ani[3]);
@@ -898,6 +909,10 @@ function indisObject(mask, img, live)
 			}
 		}
 
+		if (this._rect[3] == 0 && this.id == "banner")
+		{
+			var aa = 0;
+		}
 		context.save();
 		context.globalAlpha = this._localAlpha;
 		context.translate(this._translate[0], this._translate[1]);

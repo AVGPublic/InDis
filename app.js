@@ -48,6 +48,6 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(80, function(){
+http.listen(18080, function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

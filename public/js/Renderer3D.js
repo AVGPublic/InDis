@@ -205,8 +205,8 @@ function Renderer3D(image, points)
 	this.options = {
 	  wireframe: false,
 	  image: 'images/image1.jpg',
-	  subdivisionLimit: 5,
-	  patchSize: 32
+	  subdivisionLimit: 3,
+	  patchSize: 128
 	};
 	//Update the display to match a new point configuration.
     this.update = update;

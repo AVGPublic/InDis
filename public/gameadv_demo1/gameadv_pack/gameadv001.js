@@ -127,34 +127,41 @@ function onSourceLoaded2(imgs, callback)
 	//
 	function mouseboxclickable()
 	{
+		var x, y;
 		if (event.type == "mousedown")
-		{	
-			var x = event.clientX + window.pageXOffset - $("#canvas_overlay").position().left;
-			var y = event.clientY + window.pageYOffset - $("#canvas_overlay").position().top;
-			var pt = new jsPoint(x, y);
-			if (this.state == 0)
+		{
+			x = event.clientX + window.pageXOffset - $("#canvas_overlay").position().left;
+			y = event.clientY + window.pageYOffset - $("#canvas_overlay").position().top;
+		}
+		else 
+		{
+			return;
+		}
+	
+
+		var pt = new jsPoint(x, y);
+		if (this.state == 0)
+		{
+			if(this.testObjectClick(pt))
 			{
-				if(this.testObjectClick(pt))
-				{
-					canvas_overlay.height = 600;
-					this.transFromRectToRect(470, 0, 128, 160, 80, 0, 4*128, 4*160, 10, 0);
-					this.state = 1;
-				}
+				canvas_overlay.height = 600;
+				this.transFromRectToRect(470, 0, 128, 160, 80, 0, 4*128, 4*160, 10, 0);
+				this.state = 1;
 			}
-			else if (this.state == 1)
+		}
+		else if (this.state == 1)
+		{
+			if (this.testObjectClick(pt))
 			{
-				if (this.testObjectClick(pt))
+				var delayer = new delayton(15, null, null);
+				delayerstack.push(delayer);
+				delayer.ondelayed = function()
 				{
-					var delayer = new delayton(15, null, null);
-					delayerstack.push(delayer);
-					delayer.ondelayed = function()
-					{
-						canvas_overlay.height = 150;
-					}
-			
-					this.transFromRectToRect(80, 0, 4*128, 4*160, 470, 0, 128, 160, 10, 0);
-					this.state = 0;
+					canvas_overlay.height = 150;
 				}
+		
+				this.transFromRectToRect(80, 0, 4*128, 4*160, 470, 0, 128, 160, 10, 0);
+				this.state = 0;
 			}
 		}
 	}

@@ -4,8 +4,6 @@ var canvas_offscreen;
 var ctx_offscreen;
 var canvas_offscreen2;
 var ctx_offscreen2;
-var canvas_text;
-var ctx_text;
 var offscreen_rect = new jsRect();
 var scene_rect = new jsRect();
 //
@@ -24,6 +22,9 @@ var requestId;
 var posdata;
 var videofortime;
 var points = [];
+//
+var textpopup;
+var surveypopup = [];
 //
 function indis_setvideo(video)
 {
@@ -59,17 +60,13 @@ function indis_setrect(left, top, width, height, canvaswidth, canvasheight)
 }
 function indis_playtext(text)
 {
-	canvas_text = document.createElement('canvas');
-	ctx_text = canvas_text.getContext('2d');
-	ctx_text.font="20px Microsoft YaHei";
+	var canvas_text = document.createElement('canvas');
+	var ctx_text = canvas_text.getContext('2d');
+	ctx_text.font = "20px Microsoft YaHei";
 	canvas_text.width = ctx_text.measureText(text).width;
-	canvas_text.height = 28;
+	canvas_text.height = 20;
 	
-	ctx_text.clearRect(0, 0, canvas_text.width, canvas_text.height);
-	ctx_text.font="20px Microsoft YaHei";
-	ctx_text.fillStyle = "#FFFFFF";
-	ctx_text.fillText(text,0,20);
-	subtitle_text.updateImage(canvas_text);
+	subtitle_text.setText(text, "20px Microsoft YaHei", "#FFFFFF", 15, 0, 0);
 	subtitle_text.easeTo(0.95, 50, 0);
 	//
 	var hpos =  banner._rect[1] + banner._rect[3] - 25;
@@ -83,16 +80,32 @@ function indis_sceneanimate()
 	logoformove.animate();
 	logo_gear.animate();
 	banner.animate();
-	banner.id = "banner";
 	//
+	textpopup.animate();
 	subtitle_text.animate();
+	for (var i = 0; i < surveypopup.length; i++)
+	{
+		surveypopup[i].animate();
+	}
 	//
 	ctx_offscreen.clearRect(offscreen_rect.x, offscreen_rect.y, offscreen_rect.w, offscreen_rect.h);
 	logo.renderFrame(ctx_offscreen);
 	//
 	ctx_scene.clearRect(0, 0, scene_rect.w, scene_rect.h);
 	banner.renderFrame(ctx_scene);
-	subtitle_text.renderFrame(ctx_scene);
+	subtitle_text.renderText(ctx_scene);
+		
+	textpopup.renderRect(ctx_scene, 10);
+	textpopup.renderText(ctx_scene);
+		
+	surveypopup[0].renderRect(ctx_scene, 5);
+	surveypopup[0].renderText(ctx_scene);
+	
+	surveypopup[1].renderRect(ctx_scene, 5);
+	surveypopup[1].renderText(ctx_scene);
+	
+	surveypopup[2].renderText(ctx_scene);
+	
 	//
 	var time = videofortime.currentTime;
 	time += 0.48;
@@ -132,6 +145,23 @@ function indis_sceneanimate()
 	//
 	requestId  = window.requestAnimationFrame (indis_sceneanimate);
 }
+function indis_SurveyVote(text1, text2, text3)
+{
+	surveypopup[0].easeTo(0.95, 10, 0);
+	surveypopup[0].transFromRectToRect(-120, 420, 20, 20, 30, 420, 20, 20, 20, 20);
+	surveypopup[0].setColor("#DB4527","#762213");
+	surveypopup[0].setText(text1, "20px Microsoft YaHei", "#FFFFFF", 15, 25, 3);
+	
+	surveypopup[1].easeTo(0.95, 1, 0);
+	surveypopup[1].transFromRectToRect(-120, 445, 20, 20, 30, 445, 20, 20, 20, 30);
+	surveypopup[1].setColor("#020868","#010434");
+	surveypopup[1].setText(text2, "20px Microsoft YaHei", "#FFFFFF", 15, 25, 3);
+	
+	surveypopup[2].easeTo(0.95, 10, 0);
+	surveypopup[2].transFromRectToRect(-120, 395, 20, 20, 30, 395, 20, 20, 20, 10);
+	surveypopup[2].setColor("#0082E5","#0082E5");
+	surveypopup[2].setText(text3, "20px Microsoft YaHei", "#FFFFFF", 15, 0, 0);
+}
 function indis_initObjects(imgs)
 {
 	//
@@ -146,12 +176,66 @@ function indis_initObjects(imgs)
 	subtitle_text = new indisObject(null, imgs[1], false);
 	//
 	banner = new indisObject(null, imgs[4], false);
+	//
+	textpopup = new indisObject(null, null, false);
+	//
+	for (var i = 0; i < 3; i++)
+	{
+		surveypopup[i] = new indisObject(null, null, false);
+	}
 }
 function onSourceLoaded(imgs, callback)
 {
 	indis_initObjects(imgs);
 	//
 	indisControllerObject = new indisController();
+	function textpopupmouse()
+	{
+		if (event.type == "mousedown")
+		{
+			var x = event.clientX + window.pageXOffset - $("#canvas_scene").position().left;
+			var y = event.clientY + window.pageYOffset - $("#canvas_scene").position().top;
+			var pt = new jsPoint(x, y);
+			if (this.testObjectClick(pt))
+			{
+				this.easeTo(0.0, 15, 0);
+				this.transFromRectToRect(590, 420, 360, 100, 1200, 420, 360, 100, 15, 0);
+			}
+		}
+	}
+	indisControllerObject.registorObject2MouseEvent(textpopup, textpopupmouse);
+	
+	
+	function surveyClick()
+	{
+		if (event.type == "mousedown")
+		{
+			var x = event.clientX + window.pageXOffset - $("#canvas_scene").position().left;
+			var y = event.clientY + window.pageYOffset - $("#canvas_scene").position().top;
+			var pt = new jsPoint(x, y);
+			if (this.testObjectClick(pt))
+			{
+				if (surveypopup[0].state == 0)
+				{
+					surveypopup[0].transFromRectToRect(30, 420, 20, 20, 30, 420, 240, 20, 40, 0);
+					surveypopup[1].transFromRectToRect(30, 445, 20, 20, 30, 445, 160, 20, 40, 0);
+					surveypopup[0].setText("中国%73", "20px Microsoft YaHei", "#FFFFFF", 15, 25, 3);
+					surveypopup[1].setText("澳大利亚%19", "20px Microsoft YaHei", "#FFFFFF", 15, 25, 3);
+					surveypopup[0].state = 1;
+				}
+				else if (surveypopup[0].state == 1)
+				{ 
+					surveypopup[0].transFromRectToRect(30, 420, 240, 20, -300, 420, 240, 20, 20, 0);
+					surveypopup[1].transFromRectToRect(30, 445, 160, 20, -300, 445, 240, 20, 20, 0);
+					surveypopup[2].transFromRectToRect(20, 395, 20, 20, -120, 395, 20, 20, 20, 0);
+					surveypopup[0].state = 0;
+				}
+			}
+		}
+	}
+	indisControllerObject.registorObject2MouseEvent(surveypopup[0], surveyClick);
+	indisControllerObject.registorObject2MouseEvent(surveypopup[1], surveyClick);
+	
 	function mouse1()
 	{
 		if (event.type == "mousedown")
@@ -315,10 +399,21 @@ function indis_sceneplayoff()
     }
 }
 
+function indis_playintext(text)
+{
+	textpopup.easeTo(0.95, 10, 0);
+	textpopup.setColor("#111111","#222222");
+	textpopup.setText(text, "20px Microsoft YaHei", "#FBFCAE", 15, 10, 10);
+}
 function indis_sceneplayin()
 {
 	indis_sceneanimate();
 
+	textpopup.easeTo(0.95, 10, 0);
+	textpopup.transFromRectToRect(1200, 420, 360, 100, 590, 420, 360, 100, 15, 0);
+	textpopup.setColor("#111111","#222222");
+	textpopup.setText("事实： \n 本场比赛有将近3万2千名中国球迷来到 \n 布里斯班，占场内观众的45%。", "20px Microsoft YaHei", "#FBFCAE", 15, 10, 10);
+	 
 	banner.easeTo(1, 10, 0);
 	banner.transFromRectToRect(0, -380, 960, 540, 0, -380, 960, 370, 1, 0);
 	

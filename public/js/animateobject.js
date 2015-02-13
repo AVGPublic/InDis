@@ -24,6 +24,29 @@ function cloneJSONparam(param)
 {
 	return JSON.parse(JSON.stringify(param));
 }
+function wrapText(context, text, x, y, maxWidth, lineHeight) 
+{
+    var words = text.split(' ');
+    var line = '';
+
+    for(var n = 0; n < words.length; n++)
+    {
+       var testLine = line + words[n] + ' ';
+       var metrics = context.measureText(testLine);
+       var testWidth = metrics.width;
+       if (testWidth > maxWidth && n > 0)
+       {
+          context.fillText(line, x, y);
+          line = words[n] + ' ';
+          y += lineHeight;
+       }
+       else 
+       {
+         line = testLine;
+       }
+    }
+    context.fillText(line, x, y);
+}
 //---------------------------------------------------------//
 //---------------event state machine-----------------------//
 function indisEventStateMachine(num)
@@ -286,6 +309,15 @@ function indisObject(mask, img, live)
 		this.imageNaturalheight = 1;
 	}
 	//
+	this._text = undefined;
+	this._font = undefined;
+	this._fontColor = undefined;
+	this._textLineHeight = undefined;
+	this._textTop = undefined;
+	this._textLeft = undefined;
+	this._fillColor = undefined;
+	this._strokeColor = undefined;
+	//
 	this._mask = [];
 	this._withMask;
 	if (mask != null)
@@ -334,6 +366,7 @@ function indisObject(mask, img, live)
 	this.resetAnimateRootPointer = resetAnimateRootPointer;
 	this.setAnimateRootPointer = setAnimateRootPointer;
 	this.appendChildObject = appendChildObject;
+	//
 	this.transToRect = transToRect;
 	this.transFromRectToRect = transFromRectToRect;
 	this.setRect = setRect;
@@ -344,13 +377,21 @@ function indisObject(mask, img, live)
 	this.easeIn = easeIn;
 	this.easeOut = easeOut;
 	this.animate = animate;
+	//
+	this.renderRect = renderRect;
+	this.renderText = renderText;
+	this.renderTextThroughTexture = renderTextThroughTexture;
 	this.renderFrame = renderFrame;
 	this.renderFrameInMask = renderFrameInMask;
 	this.renderImage = renderImage;
 	this.renderMask = renderMask;
+	//
 	this.setTopleft = setTopleft;
 	this.testObjectClick = testObjectClick;
 	this.testStaticMaskClick = testStaticMaskClick;
+	//
+	this.setColor = setColor;
+	this.setText = setText;
 	this.updateImage = updateImage;
 	this.updateMask = updateMask;
 	//
@@ -387,6 +428,20 @@ function indisObject(mask, img, live)
 				this._delaytack[i].update();
 			}
 		}
+	}
+	function setColor(fillColor, strokeColor)
+	{
+		this._fillColor = fillColor;
+		this._strokeColor = strokeColor;
+	}
+	function setText(text, font, fontColor, lineHeight, left, top)
+	{
+		this._text = text;
+		this._font = font;
+		this._fontColor = fontColor;
+		this._textLineHeight = lineHeight;
+		this._textLeft = left;
+		this._textTop = top;
 	}
 	function updateImage(img)
 	{
@@ -909,10 +964,6 @@ function indisObject(mask, img, live)
 			}
 		}
 
-		if (this._rect[3] == 0 && this.id == "banner")
-		{
-			var aa = 0;
-		}
 		context.save();
 		context.globalAlpha = this._localAlpha;
 		context.translate(this._translate[0], this._translate[1]);
@@ -932,7 +983,372 @@ function indisObject(mask, img, live)
 			}
 		}
 	}
+	function renderRect(context, chamfer)
+	{
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var rotatepointer = this._animatePointerHash["rotate"];
+		var anchorpointer = this._animatePointerHash["anchor"];
+		var scalepointer = this._animatePointerHash["scale"];
+		var translatepointer = this._animatePointerHash["translate"];
+		var affinepointer = this._animatePointerHash["affine"];
+		var opacitypointer = this._animatePointerHash["opacity"];
+		//
+		if (imagerecttranspointer != undefined)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
+		}
+		if (rotatepointer != undefined)
+		{
+			if (this._animatastack[rotatepointer] != undefined)
+			{
+				this._rotate = this._animatastack[rotatepointer].value;
+			}
+		}
+		if (anchorpointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[anchorpointer+i] != undefined)
+				{
+					this._anchor[i] = this._animatastack[anchorpointer+i].value;
+				}
+			}
+		}
+		if (scalepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[scalepointer+i] != undefined)
+				{
+					this._scale[i] = this._animatastack[scalepointer+i].value;
+				}
+			}
+		}
+		if (translatepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[translatepointer+i] != undefined)
+				{
+					this._translate[i] = this._animatastack[translatepointer+i].value;
+				}
+			}
+			if (this.id == "banner" && this.state == 2 && this._translate[1] == 0)
+			{
+				var test = this._animatastack[translatepointer+1];
+			}
+		}
+		if (affinepointer != undefined)
+		{
+			for (var i = 0; i < 6; i++)
+			{
+				if (this._animatastack[affinepointer + i] != undefined)
+				{
+					if (this._animatastack[affinepointer + i].live == true)
+					{	
+						this._affine[i] = this._animatastack[affinepointer + i].value;
+					}
+				}
+			}
+		}
+		if (opacitypointer != undefined)
+		{
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
+		}
 
+		context.save();
+		context.globalAlpha = this._localAlpha;
+		context.translate(this._translate[0], this._translate[1]);
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
+		//
+		var x = this._rect[0];
+		var y = this._rect[1];
+		var width = this._rect[2];
+		var height = this._rect[3];
+		context.beginPath();  
+		context.moveTo(x + chamfer, y);  
+		context.lineTo(x + width - chamfer, y);  
+		context.quadraticCurveTo(x + width, y, x + width, y + chamfer);  
+		context.lineTo(x + width, y + height - chamfer);  
+		context.quadraticCurveTo(x + width, y + height, x + width - chamfer, y+ height);  
+		context.lineTo(x + chamfer, y + height);  
+		context.quadraticCurveTo(x, y + height, x, y + height - chamfer);  
+		context.lineTo(x, y + chamfer);  
+		context.quadraticCurveTo(x, y, x + chamfer, y);  
+		context.closePath();  
+		if (typeof this._fillColor != undefined)
+		{  
+			context.fillStyle = this._fillColor;
+		   	context.fill();  
+		}  
+		if (typeof this._strokeColor != undefined) 
+		{  
+			context.strokeStyle = this._strokeColor;
+		    context.stroke();  
+		} 		//
+		context.restore();
+
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderRect(context, chamfer);
+			}
+		}
+		
+	}
+	
+	function renderTextThroughTexture(context)
+	{
+		if (this._text == undefined)
+		{
+			return;
+		}
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var rotatepointer = this._animatePointerHash["rotate"];
+		var anchorpointer = this._animatePointerHash["anchor"];
+		var scalepointer = this._animatePointerHash["scale"];
+		var translatepointer = this._animatePointerHash["translate"];
+		var affinepointer = this._animatePointerHash["affine"];
+		var opacitypointer = this._animatePointerHash["opacity"];
+		//
+		if (imagerecttranspointer != undefined)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
+		}
+		if (rotatepointer != undefined)
+		{
+			if (this._animatastack[rotatepointer] != undefined)
+			{
+				this._rotate = this._animatastack[rotatepointer].value;
+			}
+		}
+		if (anchorpointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[anchorpointer+i] != undefined)
+				{
+					this._anchor[i] = this._animatastack[anchorpointer+i].value;
+				}
+			}
+		}
+		if (scalepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[scalepointer+i] != undefined)
+				{
+					this._scale[i] = this._animatastack[scalepointer+i].value;
+				}
+			}
+		}
+		if (translatepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[translatepointer+i] != undefined)
+				{
+					this._translate[i] = this._animatastack[translatepointer+i].value;
+				}
+			}
+			if (this.id == "banner" && this.state == 2 && this._translate[1] == 0)
+			{
+				var test = this._animatastack[translatepointer+1];
+			}
+		}
+		if (affinepointer != undefined)
+		{
+			for (var i = 0; i < 6; i++)
+			{
+				if (this._animatastack[affinepointer + i] != undefined)
+				{
+					if (this._animatastack[affinepointer + i].live == true)
+					{	
+						this._affine[i] = this._animatastack[affinepointer + i].value;
+					}
+				}
+			}
+		}
+		if (opacitypointer != undefined)
+		{
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
+		}
+
+		var canvas_temp = document.createElement('canvas');
+		var ctx_temp = canvas_temp.getContext('2d');
+		ctx_temp.font = this._font;
+		canvas_temp.width = this._textWidth;
+		canvas_temp.height = this._textHeight;
+		
+		ctx_temp.clearRect(0, 0, canvas_temp.width, canvas_temp.height);
+		ctx_temp.font = this._font;
+		ctx_temp.fillStyle = this._fontColor;
+		//ctx_temp.fillText(this._text, 0, 20);
+		var lineHeight = this._textHeight/(this._textNline + 3);
+		wrapText(ctx_temp, this._text, this._textLeft, this._textTop + this._textHeight, 1, lineHeight);
+		 
+		context.save();
+		context.globalAlpha = 1;//3this._localAlpha;
+		context.translate(this._translate[0], this._translate[1]);
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
+
+		context.drawImage(canvas_temp, this._rect[0], this._rect[1], this._rect[2], this._rect[3]);
+		context.restore();
+
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderTextThroughTexture(context);
+			}
+		}
+	}
+	
+	function renderText(context)
+	{
+		if (this._text == undefined)
+		{
+			return;
+		}
+		var imagerecttranspointer = this._animatePointerHash["rect"];
+		var rotatepointer = this._animatePointerHash["rotate"];
+		var anchorpointer = this._animatePointerHash["anchor"];
+		var scalepointer = this._animatePointerHash["scale"];
+		var translatepointer = this._animatePointerHash["translate"];
+		var affinepointer = this._animatePointerHash["affine"];
+		var opacitypointer = this._animatePointerHash["opacity"];
+		//
+		if (imagerecttranspointer != undefined)
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				if (this._animatastack[imagerecttranspointer + i] != undefined)
+				{
+					if (this._animatastack[imagerecttranspointer + i].live == true)
+					{	
+						this._rect[i] = this._animatastack[imagerecttranspointer + i].value;
+					}
+				}
+			}
+		}
+		if (rotatepointer != undefined)
+		{
+			if (this._animatastack[rotatepointer] != undefined)
+			{
+				this._rotate = this._animatastack[rotatepointer].value;
+			}
+		}
+		if (anchorpointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[anchorpointer+i] != undefined)
+				{
+					this._anchor[i] = this._animatastack[anchorpointer+i].value;
+				}
+			}
+		}
+		if (scalepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[scalepointer+i] != undefined)
+				{
+					this._scale[i] = this._animatastack[scalepointer+i].value;
+				}
+			}
+		}
+		if (translatepointer != undefined)
+		{
+			for (var i = 0; i < 2; i++)
+			{
+				if (this._animatastack[translatepointer+i] != undefined)
+				{
+					this._translate[i] = this._animatastack[translatepointer+i].value;
+				}
+			}
+			if (this.id == "banner" && this.state == 2 && this._translate[1] == 0)
+			{
+				var test = this._animatastack[translatepointer+1];
+			}
+		}
+		if (affinepointer != undefined)
+		{
+			for (var i = 0; i < 6; i++)
+			{
+				if (this._animatastack[affinepointer + i] != undefined)
+				{
+					if (this._animatastack[affinepointer + i].live == true)
+					{	
+						this._affine[i] = this._animatastack[affinepointer + i].value;
+					}
+				}
+			}
+		}
+		if (opacitypointer != undefined)
+		{
+			if (this._animatastack[opacitypointer].live == true)
+			{
+				this._localAlpha = this._animatastack[opacitypointer].value;
+			}
+		}
+
+		context.save();
+		context.globalAlpha = 1;//this._localAlpha;
+		context.translate(this._translate[0], this._translate[1]);
+		context.translate(this._anchor[0], this._anchor[1]);
+		context.rotate(this._rotate);
+		context.scale(this._scale[0], this._scale[1]);
+		context.translate(-this._anchor[0], -this._anchor[1]);
+		context.transform(this._affine[0], this._affine[1], this._affine[2], this._affine[3], this._affine[4], this._affine[5], this._affine[6]);
+		context.font= this._font;
+		context.fillStyle =	this._fontColor;
+		//context.fillText(this._text, this._textLeft + this._rect[0], this._textTop + this._rect[1]);
+		wrapText(context, this._text, this._textLeft + this._rect[0], this._textLineHeight + this._textTop + this._rect[1], 4, this._textLineHeight);
+		context.restore();
+
+		for (var i = 0; i < this._animateIndependChildStack.length; i++)
+		{
+			if (this._animateIndependChildStack[i].live)
+			{
+				this._animateIndependChildStack[i].renderText(context);
+			}
+		}
+	}
+	
 	function renderFrameInMask(context)
 	{
 		var imagerecttranspointer = this._animatePointerHash["rect"];

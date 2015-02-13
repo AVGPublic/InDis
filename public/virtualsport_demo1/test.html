@@ -34,8 +34,14 @@
 	var indisEvOn;
 	$("#video0").on("ended", function(e){
 		$("#video0")[0].play();
+		if(indisEvOn.TriggerOnceInAnimation(0))
+		{
+			indis_playintext("现场报道： \n 张琳芃上半场比赛有轻微的小腿肌肉 \n 拉伤，中场赛经队医检测并无大碍");
+			indisEvOn.Reset(0);
+		}
 	});
-	$("#video0").on("loadeddata", function(e){
+	$("#video0").on("loadeddata", function(e)
+	{
 		var top = $("#video0").position().top;
 		var left =  $("#video0").position().left;
 		indis_setrect(left, top, 960, 540, 256, 256);
@@ -48,8 +54,24 @@
 	});
 	$("document").ready()
 	{
+		indisEvOn = new indisEventStateMachine(2);
+		main_scene_animate();
 	}
-
+	
+	main_scene_animate();
+	function main_scene_animate()
+	{
+		var time = document.getElementById("video0").currentTime;
+		if (time > 10)
+		{
+			if (indisEvOn.TriggerOnceInAnimation(1))
+			{
+				indis_SurveyVote("中国", "澳大利亚", "猜猜谁会赢");
+			}
+		}
+		window.requestAnimationFrame(main_scene_animate);
+	}
+	
 	if ("ontouchstart" in window) 
 	{
 		$("#video0").on("touchstart", indisOnMouseEvent);
